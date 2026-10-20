@@ -2,6 +2,8 @@
 
 API e front-end de um blog acadêmico com posts, autores e controle de acesso por perfil (Administrador, Professor, Aluno), com autenticação e cadastro de usuários com foco em segurança, boas práticas e arquitetura escalável.
 
+> 📱 **Fase 4 em andamento:** desenvolvimento do aplicativo mobile em React Native. O planejamento e o progresso das entregas estão em [`docs/plano-fase4.md`](docs/plano-fase4.md).
+
 ## 🚀 Tecnologias
 
 **Backend**
@@ -117,8 +119,8 @@ npm test
 
 **1 → Clone o repositório**
 ```bash
-git clone https://github.com/denismc/blog-pos-fiap-fase3.git
-cd blog-pos-fiap-fase3
+git clone https://github.com/denismc/blog-pos-fiap-fase4.git
+cd blog-pos-fiap-fase4
 ```
 
 **2 → Configure as variáveis de ambiente do backend**
@@ -168,7 +170,7 @@ docker-compose -f docker-compose.dev.yml down -v
 
 **Rodando mais de uma cópia na mesma máquina**
 
-Os nomes dos containers usam `${COMPOSE_PROJECT_NAME}`, que por padrão é o nome da pasta do projeto. Como o `git clone` sempre cria uma pasta chamada `blog-pos-fiap`, duas cópias clonadas em lugares diferentes ainda colidem por padrão (mesmo nome de projeto = mesmos containers/volume). Pra rodar duas instâncias isoladas ao mesmo tempo, use a flag `-p` com um nome diferente para cada uma:
+Os nomes dos containers usam `${COMPOSE_PROJECT_NAME}`, que por padrão é o nome da pasta do projeto. Como o `git clone` sempre cria uma pasta chamada `blog-pos-fiap-fase4`, duas cópias clonadas em lugares diferentes ainda colidem por padrão (mesmo nome de projeto = mesmos containers/volume). Pra rodar duas instâncias isoladas ao mesmo tempo, use a flag `-p` com um nome diferente para cada uma:
 ```bash
 docker-compose -p meu-teste -f docker-compose.dev.yml up -d --build
 ```
