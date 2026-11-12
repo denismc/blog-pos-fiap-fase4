@@ -12,6 +12,17 @@ const mockRepository: jest.Mocked<IUsuarioRepository> = {
   delete: jest.fn(),
 };
 
+const usuarioBase = {
+  email: 'usuario@email.com',
+  createdAt: '2024-01-01',
+  updatedAt: '2024-01-01',
+};
+const admin = { ...usuarioBase, _id: '10', nome: 'Admin', perfil: 'Administrador' as const };
+const professor = { ...usuarioBase, _id: '20', nome: 'Professor B', perfil: 'Professor' as const };
+const aluno = { ...usuarioBase, _id: '30', nome: 'Aluno', perfil: 'Aluno' as const };
+const professorLogado = { id: '21', perfil: 'Professor' };
+const ERRO_ADMIN = { erro: 'Professores não podem gerenciar Administradores' };
+
 const mockResponse = () => {
   const res = {} as Response;
   res.status = jest.fn().mockReturnValue(res) as unknown as Response['status'];
@@ -23,6 +34,7 @@ describe('UsuarioController', () => {
   let controller: UsuarioController;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     controller = new UsuarioController(mockRepository);
   });
 
@@ -71,6 +83,35 @@ describe('criarUsuario', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ erro: 'Email duplicado' });
+    });
+
+    it('deve permitir que professor crie aluno', async () => {
+      mockRepository.create.mockResolvedValue(aluno);
+
+      const req = {
+        body: { nome: 'Aluno', email: 'aluno@email.com', senha: 'senha123', perfil: 'Aluno' },
+        usuario: professorLogado,
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.criarUsuario(req, res);
+
+      expect(mockRepository.create).toHaveBeenCalledTimes(1);
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('deve retornar 403 quando professor tenta criar administrador', async () => {
+      const req = {
+        body: { nome: 'Novo Admin', email: 'novo@email.com', senha: 'senha123', perfil: 'Administrador' },
+        usuario: professorLogado,
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.criarUsuario(req, res);
+
+      expect(mockRepository.create).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(ERRO_ADMIN);
     });
   });
 
@@ -142,6 +183,74 @@ describe('criarUsuario', () => {
 
       expect(mockRepository.update).toHaveBeenCalledWith('2', expect.objectContaining({ nome: 'Maria Atualizada' }));
       expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('deve permitir que usuário edite os próprios dados sem enviar o perfil', async () => {
+      mockRepository.findById.mockResolvedValue(admin);
+      mockRepository.update.mockResolvedValue({ ...admin, nome: 'Admin Novo' });
+
+      const req = {
+        params: { id: '10' },
+        body: { nome: 'Admin Novo' },
+        usuario: { id: '10', perfil: 'Administrador' },
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.atualizarUsuario(req, res);
+
+      expect(mockRepository.update).toHaveBeenCalledTimes(1);
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('deve permitir que professor edite outro professor', async () => {
+      mockRepository.findById.mockResolvedValue(professor);
+      mockRepository.update.mockResolvedValue({ ...professor, nome: 'Professor B2' });
+
+      const req = {
+        params: { id: '20' },
+        body: { nome: 'Professor B2', perfil: 'Professor' },
+        usuario: professorLogado,
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.atualizarUsuario(req, res);
+
+      expect(mockRepository.update).toHaveBeenCalledWith('20', expect.objectContaining({ nome: 'Professor B2' }));
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('deve retornar 403 quando professor tenta editar administrador', async () => {
+      mockRepository.findById.mockResolvedValue(admin);
+
+      const req = {
+        params: { id: '10' },
+        body: { nome: 'Outro nome' },
+        usuario: professorLogado,
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.atualizarUsuario(req, res);
+
+      expect(mockRepository.update).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(ERRO_ADMIN);
+    });
+
+    it('deve retornar 403 quando professor tenta promover alguém a administrador', async () => {
+      mockRepository.findById.mockResolvedValue(aluno);
+
+      const req = {
+        params: { id: '30' },
+        body: { perfil: 'Administrador' },
+        usuario: professorLogado,
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.atualizarUsuario(req, res);
+
+      expect(mockRepository.update).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(ERRO_ADMIN);
     });
   });
 
@@ -219,6 +328,7 @@ describe('criarUsuario', () => {
 
     it('deve deletar usuário com status 200', async () => {
       const usuario = { _id: '2', nome: 'Maria', email: 'maria@email.com', perfil: 'Aluno' as const, createdAt: '2024-01-01', updatedAt: '2024-01-01' };
+      mockRepository.findById.mockResolvedValue(usuario);
       mockRepository.delete.mockResolvedValue(usuario);
 
       const req = {
@@ -232,6 +342,48 @@ describe('criarUsuario', () => {
       expect(mockRepository.delete).toHaveBeenCalledWith('2');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ mensagem: 'Usuário deletado com sucesso' });
+    });
+
+    it('deve retornar 404 quando usuário a excluir não existe', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      const req = {
+        params: { id: '999' },
+        usuario: { id: '1', perfil: 'Administrador' },
+      } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.deletarUsuario(req, res);
+
+      expect(mockRepository.delete).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ erro: 'Usuário não encontrado' });
+    });
+
+    it('deve permitir que professor exclua aluno', async () => {
+      mockRepository.findById.mockResolvedValue(aluno);
+      mockRepository.delete.mockResolvedValue(aluno);
+
+      const req = { params: { id: '30' }, usuario: professorLogado } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.deletarUsuario(req, res);
+
+      expect(mockRepository.delete).toHaveBeenCalledWith('30');
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('deve retornar 403 quando professor tenta excluir administrador', async () => {
+      mockRepository.findById.mockResolvedValue(admin);
+
+      const req = { params: { id: '10' }, usuario: professorLogado } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.deletarUsuario(req, res);
+
+      expect(mockRepository.delete).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(ERRO_ADMIN);
     });
   });
 });

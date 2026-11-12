@@ -91,15 +91,16 @@ cd backend
 npm test
 ```
 
-**Cobertura atual:** ~42% statements / ~44% lines (bem acima do mínimo de 20% exigido), com foco nos controllers — em especial `postController` e `comentarioController`, que cobrem as regras de propriedade (autor vs. Administrador) e a checagem de existência do post ao comentar.
+**Cobertura atual:** ~46% statements / ~49% lines (bem acima do mínimo de 20% exigido), com foco nos controllers e no middleware de autorização — em especial `postController` e `comentarioController`, que cobrem as regras de propriedade (autor vs. Administrador) e a checagem de existência do post ao comentar, e `usuarioController`, que cobre o que o Professor pode ou não fazer com outros usuários.
 
-| Controller | Testes |
+| Controller / middleware | Testes |
 |------------|--------|
-| `criarUsuario` | 2 |
-| `atualizarUsuario` | 3 |
+| `autorizar` (middleware) | 4 |
+| `criarUsuario` | 4 |
+| `atualizarUsuario` | 7 |
 | `listarUsuarios` | 2 |
 | `buscarUsuario` | 2 |
-| `deletarUsuario` | 2 |
+| `deletarUsuario` | 5 |
 | `criarPost` | 2 |
 | `listarPosts` | 2 |
 | `buscarPost` | 2 |
@@ -109,7 +110,7 @@ npm test
 | `criarComentario` | 3 |
 | `listarComentarios` | 3 |
 | `deletarComentario` | 5 |
-| **Total** | **39** |
+| **Total** | **52** |
 
 ## 📋 Pré-requisitos
 
@@ -210,11 +211,15 @@ Documentação interativa completa (Swagger) em `http://localhost:3000/api/docs`
 
 | Método | Rota | Acesso |
 |--------|------|--------|
-| GET | `/api/usuarios` | Autenticado |
-| GET | `/api/usuarios/:id` | Autenticado |
-| POST | `/api/usuarios` | Administrador |
-| PUT | `/api/usuarios/:id` | Administrador |
-| DELETE | `/api/usuarios/:id` | Administrador |
+| GET | `/api/usuarios` | Administrador, Professor |
+| GET | `/api/usuarios/:id` | Administrador, Professor |
+| POST | `/api/usuarios` | Administrador (qualquer perfil) ou Professor (somente Professor/Aluno) |
+| PUT | `/api/usuarios/:id` | Administrador (qualquer usuário) ou Professor (somente Professor/Aluno) |
+| DELETE | `/api/usuarios/:id` | Administrador (qualquer usuário) ou Professor (somente Professor/Aluno) |
+
+- Um Professor nunca cria, edita, exclui ou promove um Administrador — a API responde `403` com `"Professores não podem gerenciar Administradores"`.
+- Ninguém pode alterar o próprio perfil nem excluir a própria conta (vale para qualquer perfil).
+- Alunos não acessam a listagem nem os dados de outros usuários (e-mails ficam protegidos).
 
 **Posts**
 

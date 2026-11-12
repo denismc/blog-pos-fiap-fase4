@@ -17,6 +17,7 @@ const controller = new UsuarioController(repository);
  * /usuarios:
  *   post:
  *     summary: Criar novo usuário
+ *     description: Administrador cria qualquer perfil; Professor cria apenas Professores e Alunos.
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
@@ -62,13 +63,14 @@ const controller = new UsuarioController(repository);
  *       403:
  *         description: Acesso negado
  */
-router.post('/', autorizar('Administrador'), validarSchema(criarUsuarioSchema), (req, res) => controller.criarUsuario(req, res));
+router.post('/', autorizar('Administrador', 'Professor'), validarSchema(criarUsuarioSchema), (req, res) => controller.criarUsuario(req, res));
 
 /**
  * @swagger
  * /usuarios:
  *   get:
  *     summary: Listar todos os usuários
+ *     description: Restrito a Administrador e Professor.
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
@@ -83,14 +85,17 @@ router.post('/', autorizar('Administrador'), validarSchema(criarUsuarioSchema), 
  *                 $ref: '#/components/schemas/Usuario'
  *       401:
  *         description: Token não fornecido ou inválido
+ *       403:
+ *         description: Acesso negado
  */
-router.get('/', (req, res) => controller.listarUsuarios(req, res));
+router.get('/', autorizar('Administrador', 'Professor'), (req, res) => controller.listarUsuarios(req, res));
 
 /**
  * @swagger
  * /usuarios/{id}:
  *   get:
  *     summary: Buscar usuário por ID
+ *     description: Restrito a Administrador e Professor.
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
@@ -110,16 +115,19 @@ router.get('/', (req, res) => controller.listarUsuarios(req, res));
  *               $ref: '#/components/schemas/Usuario'
  *       401:
  *         description: Token não fornecido ou inválido
+ *       403:
+ *         description: Acesso negado
  *       404:
  *         description: Usuário não encontrado
  */
-router.get('/:id', (req, res) => controller.buscarUsuario(req, res));
+router.get('/:id', autorizar('Administrador', 'Professor'), (req, res) => controller.buscarUsuario(req, res));
 
 /**
  * @swagger
  * /usuarios/{id}:
  *   put:
  *     summary: Atualizar usuário
+ *     description: Administrador edita qualquer usuário; Professor edita apenas Professores e Alunos e não pode promover ninguém a Administrador.
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
@@ -169,13 +177,14 @@ router.get('/:id', (req, res) => controller.buscarUsuario(req, res));
  *       404:
  *         description: Usuário não encontrado
  */
-router.put('/:id', autorizar('Administrador'), validarSchema(atualizarUsuarioSchema), (req, res) => controller.atualizarUsuario(req, res));
+router.put('/:id', autorizar('Administrador', 'Professor'), validarSchema(atualizarUsuarioSchema), (req, res) => controller.atualizarUsuario(req, res));
 
 /**
  * @swagger
  * /usuarios/{id}:
  *   delete:
  *     summary: Deletar usuário
+ *     description: Administrador exclui qualquer usuário; Professor exclui apenas Professores e Alunos.
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
@@ -196,6 +205,6 @@ router.put('/:id', autorizar('Administrador'), validarSchema(atualizarUsuarioSch
  *       404:
  *         description: Usuário não encontrado
  */
-router.delete('/:id', autorizar('Administrador'), (req, res) => controller.deletarUsuario(req, res));
+router.delete('/:id', autorizar('Administrador', 'Professor'), (req, res) => controller.deletarUsuario(req, res));
 
 export default router;
