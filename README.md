@@ -87,7 +87,7 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 
 ## 📱 Mobile
 
-> Em desenvolvimento. Nesta etapa o app tem só a base do projeto (navegação, tema e configuração). As telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
+> Em desenvolvimento. Hoje o app tem login com sessão persistida e rotas protegidas. As demais telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
 
 ### Setup inicial
 
@@ -108,7 +108,9 @@ O backend precisa estar rodando (veja "🐳 Rodando com Docker"). No celular, `l
 | Celular físico (mesma rede Wi-Fi do PC) | `http://<IP-do-PC>:3000/api` |
 | Backend publicado | `https://<servico>.onrender.com/api` |
 
-Scripts úteis (dentro de `mobile/`): `npm run lint`, `npm run typecheck` e `npm run format`.
+Scripts úteis (dentro de `mobile/`): `npm test`, `npm run test:coverage`, `npm run lint`, `npm run typecheck` e `npm run format`.
+
+Para entrar, use um dos usuários da seção "👤 Usuários padrão".
 
 ### Arquitetura da aplicação
 
@@ -116,10 +118,15 @@ Scripts úteis (dentro de `mobile/`): `npm run lint`, `npm run typecheck` e `npm
 - **Tema centralizado** (`src/theme`): cores, espaçamentos e tamanhos de fonte. São as mesmas cores do front-end web, e os estilos usam `StyleSheet` do React Native.
 - **Configuração** (`src/config/env.ts`): URL da API lida de `EXPO_PUBLIC_API_URL`.
 - **Imports com alias** `@/` apontando para `src/` (ex.: `import { cores } from '@/theme'`).
+- **Autenticação via Context API** (`src/contexts/AuthContext.tsx`): expõe `usuarioLogado`, `login` e `logout`, como no web. A sessão (token + usuário) fica no **armazenamento seguro do aparelho** com `expo-secure-store` (Keychain/Keystore), em vez do `localStorage`, e é restaurada ao abrir o app.
+- **Rotas protegidas** (`src/app/_layout.tsx`): usam `Stack.Protected` do Expo Router. Sem usuário logado só existe a tela de login. Ao logar ou deslogar, o Expo Router redireciona sozinho, sem navegação manual.
+- **Cliente da API** (`src/services/api.ts`): uma instância do Axios. Um interceptor injeta o token JWT, e outro chama o `logout` quando a API responde 401 (token expirado). No mobile não existe `window.location`, então o redirecionamento fica a cargo das rotas protegidas.
+- **Formulários** com `react-hook-form` + `zod` (`src/schemas/`), no mesmo padrão do web. Os componentes reutilizáveis ficam em `src/components/` (`Botao`, `CampoTexto`).
+- **Permissões por perfil** (`src/utils/permissoes.ts`): Professor e Administrador gerenciam posts e usuários, e o Aluno só visualiza. A API continua sendo quem garante essas regras; no app elas só decidem o que é exibido.
 
 ## 🧪 Testes
 
-O projeto usa **Jest + ts-jest** para testes unitários do backend. `npm test` já roda com `--coverage`, e o `jest.config.ts` tem um `coverageThreshold` global de 20% (statements, branches, functions e lines) — se a cobertura cair abaixo disso, os testes falham. Isso atende ao requisito de cobertura mínima de 20% do código.
+**Backend:** o projeto usa **Jest + ts-jest** para os testes unitários. `npm test` já roda com `--coverage`, e o `jest.config.ts` tem um `coverageThreshold` global de 20% (statements, branches, functions e lines) — se a cobertura cair abaixo disso, os testes falham. Isso atende ao requisito de cobertura mínima de 20% do código.
 
 **Rodar os testes:**
 
@@ -148,6 +155,25 @@ npm test
 | `listarComentarios` | 3 |
 | `deletarComentario` | 5 |
 | **Total** | **58** |
+
+**Mobile** (`mobile/`): **Jest + jest-expo + React Native Testing Library**.
+
+```bash
+cd mobile
+npm test               # ou npm run test:coverage
+```
+
+**Cobertura atual:** ~94% statements / ~93% lines.
+
+| Arquivo testado | Testes |
+|-----------------|--------|
+| `utils/permissoes` | 9 |
+| `schemas/loginSchema` | 4 |
+| `utils/erros` | 3 |
+| `services/api` (interceptors) | 4 |
+| `contexts/AuthContext` | 5 |
+| `app/login` (tela) | 3 |
+| **Total** | **28** |
 
 ## 📋 Pré-requisitos
 
@@ -315,9 +341,16 @@ Regras de negócio de `Comentários`:
 │   └── ...
 ├── mobile/
 │   ├── src/
+│   │   ├── __tests__/    # Testes unitários (Jest + Testing Library)
 │   │   ├── app/          # Telas e layouts (rotas do Expo Router)
+│   │   ├── components/   # Componentes reutilizáveis (Botao, CampoTexto)
 │   │   ├── config/       # URL da API (EXPO_PUBLIC_API_URL)
-│   │   └── theme/        # Cores, espaçamentos e fontes
+│   │   ├── contexts/     # Context API (usuário logado)
+│   │   ├── interfaces/   # Tipos TypeScript (mobile)
+│   │   ├── schemas/      # Schemas Zod
+│   │   ├── services/     # Axios e sessão (expo-secure-store)
+│   │   ├── theme/        # Cores, espaçamentos e fontes
+│   │   └── utils/        # Permissões por perfil e mensagens de erro
 │   ├── assets/           # Ícones e splash
 │   └── app.json          # Configuração do Expo
 ├── docs/                 # Plano de entregas da fase 4

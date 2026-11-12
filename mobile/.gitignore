@@ -42,3 +42,6 @@ yarn-error.*
 
 # variáveis de ambiente locais (use .env.example como modelo)
 .env
+
+# relatório de cobertura dos testes
+coverage/
