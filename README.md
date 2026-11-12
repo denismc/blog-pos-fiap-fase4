@@ -87,7 +87,7 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 
 ## 📱 Mobile
 
-> Em desenvolvimento. Hoje o app tem login com sessão persistida e rotas protegidas. As demais telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
+> Em desenvolvimento. Hoje o app tem login com sessão persistida, rotas protegidas e a lista de posts com busca. As demais telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
 
 ### Setup inicial
 
@@ -121,7 +121,9 @@ Para entrar, use um dos usuários da seção "👤 Usuários padrão".
 - **Autenticação via Context API** (`src/contexts/AuthContext.tsx`): expõe `usuarioLogado`, `login` e `logout`, como no web. A sessão (token + usuário) fica no **armazenamento seguro do aparelho** com `expo-secure-store` (Keychain/Keystore), em vez do `localStorage`, e é restaurada ao abrir o app.
 - **Rotas protegidas** (`src/app/_layout.tsx`): usam `Stack.Protected` do Expo Router. Sem usuário logado só existe a tela de login. Ao logar ou deslogar, o Expo Router redireciona sozinho, sem navegação manual.
 - **Cliente da API** (`src/services/api.ts`): uma instância do Axios. Um interceptor injeta o token JWT, e outro chama o `logout` quando a API responde 401 (token expirado). No mobile não existe `window.location`, então o redirecionamento fica a cargo das rotas protegidas.
-- **Formulários** com `react-hook-form` + `zod` (`src/schemas/`), no mesmo padrão do web. Os componentes reutilizáveis ficam em `src/components/` (`Botao`, `CampoTexto`).
+- **Formulários** com `react-hook-form` + `zod` (`src/schemas/`), no mesmo padrão do web. Os componentes reutilizáveis ficam em `src/components/` (`Botao`, `CampoTexto`, `CampoBusca`, `CardPost`).
+- **Lista de posts** (`src/app/index.tsx`): página principal com título, descrição curta, autor e data de cada post, em uma `FlatList` com "puxar para atualizar". O hook `usePosts` (`src/hooks/`) faz a chamada à API e controla carregamento e erro, com botão de tentar de novo.
+- **Busca** (`src/utils/posts.ts`): filtra na hora, sem nova chamada à API, por título, conteúdo ou nome do autor, como no web. No mobile ela também ignora acentos ("introducao" acha "Introdução").
 - **Permissões por perfil** (`src/utils/permissoes.ts`): Professor e Administrador gerenciam posts e usuários, e o Aluno só visualiza. A API continua sendo quem garante essas regras; no app elas só decidem o que é exibido.
 
 ## 🧪 Testes
@@ -163,7 +165,7 @@ cd mobile
 npm test               # ou npm run test:coverage
 ```
 
-**Cobertura atual:** ~94% statements / ~93% lines.
+**Cobertura atual:** ~96% statements / ~97% lines.
 
 | Arquivo testado | Testes |
 |-----------------|--------|
@@ -173,7 +175,9 @@ npm test               # ou npm run test:coverage
 | `services/api` (interceptors) | 4 |
 | `contexts/AuthContext` | 5 |
 | `app/login` (tela) | 3 |
-| **Total** | **28** |
+| `utils/posts` (busca, resumo, data) | 11 |
+| `app/index` (lista de posts) | 5 |
+| **Total** | **44** |
 
 ## 📋 Pré-requisitos
 
@@ -343,14 +347,15 @@ Regras de negócio de `Comentários`:
 │   ├── src/
 │   │   ├── __tests__/    # Testes unitários (Jest + Testing Library)
 │   │   ├── app/          # Telas e layouts (rotas do Expo Router)
-│   │   ├── components/   # Componentes reutilizáveis (Botao, CampoTexto)
+│   │   ├── components/   # Componentes reutilizáveis (Botao, CampoTexto, CardPost...)
 │   │   ├── config/       # URL da API (EXPO_PUBLIC_API_URL)
 │   │   ├── contexts/     # Context API (usuário logado)
+│   │   ├── hooks/        # Hooks de dados (usePosts)
 │   │   ├── interfaces/   # Tipos TypeScript (mobile)
 │   │   ├── schemas/      # Schemas Zod
 │   │   ├── services/     # Axios e sessão (expo-secure-store)
 │   │   ├── theme/        # Cores, espaçamentos e fontes
-│   │   └── utils/        # Permissões por perfil e mensagens de erro
+│   │   └── utils/        # Permissões, mensagens de erro e busca de posts
 │   ├── assets/           # Ícones e splash
 │   └── app.json          # Configuração do Expo
 ├── docs/                 # Plano de entregas da fase 4
