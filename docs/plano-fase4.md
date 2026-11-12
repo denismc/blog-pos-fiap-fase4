@@ -22,7 +22,7 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 - [x] **0** · `docs/migracao-fase4` — README apontando para o repositório da fase 4 e este plano
 
 ### Backend
-- [ ] **1** · `feat/usuarios-permissao-professor` — Professor pode criar, editar e excluir Professores e Alunos (nunca Administradores); Aluno não lista usuários
+- [x] **1** · `feat/usuarios-permissao-professor` — Professor pode criar, editar e excluir Professores e Alunos (nunca Administradores); Aluno não lista usuários
 - [ ] **2** · `feat/usuarios-paginacao` — `GET /usuarios?perfil=&page=&limit=` paginado e filtrado por perfil; ajuste da tela de usuários do front-end web
 - [ ] **3** · `feat/posts-permissao-professor` — *a decidir pelo grupo:* professor pode editar/excluir posts de outros professores?
 
