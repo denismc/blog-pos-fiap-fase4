@@ -6,6 +6,7 @@ Objetivo: desenvolver o front-end mobile do blog em React Native, consumindo o b
 
 - **Mesmo repositório**, com o app em uma pasta nova `mobile/`, ao lado de `backend/` e `frontend/`. Cada pasta mantém seu próprio `package.json` (sem npm workspaces, que conflitam com o bundler Metro).
 - **Expo + TypeScript**: permite testar no celular via Expo Go (Android e iOS) mesmo desenvolvendo no Windows.
+- **Expo Router** para a navegação (rotas por arquivos em `mobile/src/app/`). As rotas protegidas por login usam `Stack.Protected`.
 - **Sem Docker para o app**: o app roda no celular/emulador, não em servidor. O Docker continua subindo backend + MongoDB.
 - **URL da API por variável de ambiente** (`EXPO_PUBLIC_API_URL`), pois no celular `localhost` é o próprio aparelho:
   - Emulador Android: `http://10.0.2.2:3000/api`
@@ -24,10 +25,10 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 ### Backend
 - [x] **1** · `feat/usuarios-permissao-professor` — Professor pode criar, editar e excluir Professores e Alunos (nunca Administradores); Aluno não lista usuários
 - [x] **2** · `feat/usuarios-paginacao` — `GET /usuarios?perfil=&page=&limit=` paginado e filtrado por perfil; ajuste da tela de usuários do front-end web
-- [ ] **3** · `feat/posts-permissao-professor` — *a decidir pelo grupo:* professor pode editar/excluir posts de outros professores?
+- [ ] ~~**3** · `feat/posts-permissao-professor`~~ — **descartada**: o enunciado não pede que um professor edite ou exclua posts de outros professores. Ele só distingue professor (cria/modifica) de aluno (só visualiza), e isso já é atendido. Na página administrativa do app, todos os posts são listados, mas editar/excluir só aparece para o autor do post ou para o Administrador.
 
 ### Mobile
-- [ ] **4** · `feat/mobile-setup` — projeto Expo, estrutura de pastas, tema, lint/prettier
+- [x] **4** · `feat/mobile-setup` — projeto Expo, estrutura de pastas, tema, lint/prettier
 - [ ] **5** · `feat/mobile-auth` — cliente da API, contexto de autenticação, login e rotas protegidas por perfil
 - [ ] **6** · `feat/mobile-lista-posts` — página principal com título, autor, descrição curta e busca
 - [ ] **7** · `feat/mobile-detalhe-post` — leitura do post completo e comentários
