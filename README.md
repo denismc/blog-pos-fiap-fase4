@@ -21,6 +21,11 @@ API e front-end de um blog acadêmico com posts, autores e controle de acesso po
 - React Hook Form + Zod
 - Axios
 
+**Mobile**
+- React Native + TypeScript
+- Expo (SDK 58) + Expo Router
+- ESLint (`eslint-config-expo`) + Prettier
+
 ## 🔐 Segurança
 
 - Senhas com hash Argon2id + pepper
@@ -79,6 +84,38 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 4. **Aluno**: não tem abas de navegação — vê direto a lista de posts em cards, com busca, acesso somente leitura, e pode comentar nos posts.
 5. **Comentários**: qualquer perfil autenticado pode comentar ao abrir um post; só o autor do comentário ou um Administrador pode excluí-lo.
 6. **Mobile**: em telas estreitas, o menu de navegação e o usuário logado saem do header e passam a ficar atrás do ícone ☰ no canto superior direito.
+
+## 📱 Mobile
+
+> Em desenvolvimento. Nesta etapa o app tem só a base do projeto (navegação, tema e configuração). As telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
+
+### Setup inicial
+
+Pré-requisitos: Node.js 22+ e o app **Expo Go** no celular (Android ou iOS), ou um emulador Android.
+
+```bash
+cd mobile
+npm install
+cp .env.example .env   # ajuste EXPO_PUBLIC_API_URL (veja abaixo)
+npm start              # abre o Metro; leia o QR code com o Expo Go
+```
+
+O backend precisa estar rodando (veja "🐳 Rodando com Docker"). No celular, `localhost` é o próprio aparelho, então a URL da API vem de `EXPO_PUBLIC_API_URL`:
+
+| Onde o app roda | `EXPO_PUBLIC_API_URL` |
+|-----------------|-----------------------|
+| Emulador Android | `http://10.0.2.2:3000/api` |
+| Celular físico (mesma rede Wi-Fi do PC) | `http://<IP-do-PC>:3000/api` |
+| Backend publicado | `https://<servico>.onrender.com/api` |
+
+Scripts úteis (dentro de `mobile/`): `npm run lint`, `npm run typecheck` e `npm run format`.
+
+### Arquitetura da aplicação
+
+- **Expo + TypeScript** com **Expo Router**: navegação baseada em arquivos. Cada arquivo em `src/app/` é uma tela, e o `_layout.tsx` define a pilha de navegação.
+- **Tema centralizado** (`src/theme`): cores, espaçamentos e tamanhos de fonte. São as mesmas cores do front-end web, e os estilos usam `StyleSheet` do React Native.
+- **Configuração** (`src/config/env.ts`): URL da API lida de `EXPO_PUBLIC_API_URL`.
+- **Imports com alias** `@/` apontando para `src/` (ex.: `import { cores } from '@/theme'`).
 
 ## 🧪 Testes
 
@@ -276,6 +313,14 @@ Regras de negócio de `Comentários`:
 │   │   ├── services/     # Configuração do Axios
 │   │   └── types/        # Extensões de tipos
 │   └── ...
+├── mobile/
+│   ├── src/
+│   │   ├── app/          # Telas e layouts (rotas do Expo Router)
+│   │   ├── config/       # URL da API (EXPO_PUBLIC_API_URL)
+│   │   └── theme/        # Cores, espaçamentos e fontes
+│   ├── assets/           # Ícones e splash
+│   └── app.json          # Configuração do Expo
+├── docs/                 # Plano de entregas da fase 4
 ├── docker-compose.yml
 └── docker-compose.dev.yml
 ```
