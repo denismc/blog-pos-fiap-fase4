@@ -11,7 +11,9 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
+import { useRecarregarAoVoltar } from '@/hooks/useRecarregarAoVoltar';
 import { filtrarPosts } from '@/utils/posts';
+import { podeGerenciarPosts } from '@/utils/permissoes';
 import { Botao } from '@/components/Botao';
 import { CampoBusca } from '@/components/CampoBusca';
 import { CardPost } from '@/components/CardPost';
@@ -23,6 +25,7 @@ export default function ListaPosts() {
   const { usuarioLogado, logout } = useAuth();
   const { posts, carregando, atualizando, erro, recarregar } = usePosts();
   const [termoBusca, setTermoBusca] = useState('');
+  useRecarregarAoVoltar(recarregar);
 
   const postsFiltrados = useMemo(
     () => filtrarPosts(posts, termoBusca),
@@ -35,6 +38,12 @@ export default function ListaPosts() {
         Olá, {usuarioLogado?.nome}{' '}
         <Text style={styles.perfil}>({usuarioLogado?.perfil})</Text>
       </Text>
+      {podeGerenciarPosts(usuarioLogado?.perfil) ? (
+        <Botao
+          titulo="+ Novo post"
+          onPress={() => router.push('/posts/novo')}
+        />
+      ) : null}
       <CampoBusca
         valor={termoBusca}
         onChange={setTermoBusca}

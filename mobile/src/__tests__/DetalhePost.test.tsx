@@ -23,10 +23,12 @@ jest.mock('@/contexts/AuthContext', () => ({
 }));
 
 const mockVoltar = jest.fn();
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
+  useFocusEffect: jest.fn(),
   useLocalSearchParams: () => ({ id: 'p1' }),
-  useRouter: () => ({ back: mockVoltar }),
+  useRouter: () => ({ back: mockVoltar, push: mockPush }),
 }));
 
 const mockGet = api.get as jest.Mock;
@@ -238,5 +240,45 @@ describe('Detalhe do post', () => {
 
     expect(mockDelete).not.toHaveBeenCalled();
     expect(screen.getByText('Fica')).toBeOnTheScreen();
+  });
+
+  describe('botão de editar', () => {
+    const casos: [string, IUsuarioLogado, boolean][] = [
+      [
+        'Aluno',
+        { id: 'aluno1', nome: 'A', email: 'a@a.com', perfil: 'Aluno' },
+        false,
+      ],
+      [
+        'Professor autor',
+        { id: 'prof1', nome: 'P', email: 'p@p.com', perfil: 'Professor' },
+        true,
+      ],
+      [
+        'outro Professor',
+        { id: 'prof2', nome: 'Q', email: 'q@q.com', perfil: 'Professor' },
+        false,
+      ],
+      [
+        'Administrador',
+        { id: 'adm', nome: 'X', email: 'x@x.com', perfil: 'Administrador' },
+        true,
+      ],
+    ];
+
+    it.each(casos)('%s: aparece = %s', async (_nome, usuario, aparece) => {
+      mockUsuario = usuario;
+      responderGet([]);
+      await render(<DetalhePost />);
+      await screen.findByText('Nenhum comentário ainda.');
+
+      const botao = screen.queryByRole('button', { name: 'Editar post' });
+      if (aparece) {
+        await fireEvent.press(botao!);
+        expect(mockPush).toHaveBeenCalledWith('/posts/editar/p1');
+      } else {
+        expect(botao).not.toBeOnTheScreen();
+      }
+    });
   });
 });
