@@ -8,8 +8,11 @@ import {
   View,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePost } from '@/hooks/usePost';
+import { useRecarregarAoVoltar } from '@/hooks/useRecarregarAoVoltar';
 import { nomeDoAutor } from '@/utils/posts';
+import { eAutorOuAdmin, podeGerenciarPosts } from '@/utils/permissoes';
 import { formatarData } from '@/utils/datas';
 import { Botao } from '@/components/Botao';
 import { Comentarios } from '@/components/Comentarios';
@@ -19,7 +22,10 @@ import { cores, espacamento, fonte, raio } from '@/theme';
 export default function DetalhePost() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { usuarioLogado } = useAuth();
   const { post, carregando, erro, recarregar } = usePost(id);
+  // Depois de editar, o post volta atualizado.
+  useRecarregarAoVoltar(recarregar);
 
   if (carregando) {
     return (
@@ -50,6 +56,9 @@ export default function DetalhePost() {
   }
 
   const foiAtualizado = post.updatedAt !== post.createdAt;
+  const podeEditar =
+    podeGerenciarPosts(usuarioLogado?.perfil) &&
+    eAutorOuAdmin(usuarioLogado, post);
 
   return (
     <KeyboardAvoidingView
@@ -76,6 +85,13 @@ export default function DetalhePost() {
             </Text>
           </View>
           <Text style={styles.texto}>{post.conteudo}</Text>
+          {podeEditar ? (
+            <Botao
+              titulo="Editar post"
+              variante="secundaria"
+              onPress={() => router.push(`/posts/editar/${post._id}`)}
+            />
+          ) : null}
         </View>
 
         <Comentarios postId={post._id} />

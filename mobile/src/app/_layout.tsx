@@ -2,6 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { podeGerenciarPosts } from '@/utils/permissoes';
 import { cores } from '@/theme';
 
 export default function RootLayout() {
@@ -42,6 +43,15 @@ function Navegacao() {
       <Stack.Protected guard={logado}>
         <Stack.Screen name="index" options={{ title: 'Blog FIAP' }} />
         <Stack.Screen name="posts/[id]" options={{ title: 'Post' }} />
+
+        {/* Rotas por perfil: Aluno não chega nelas nem digitando o link. */}
+        <Stack.Protected guard={podeGerenciarPosts(usuarioLogado?.perfil)}>
+          <Stack.Screen name="posts/novo" options={{ title: 'Novo post' }} />
+          <Stack.Screen
+            name="posts/editar/[id]"
+            options={{ title: 'Editar post' }}
+          />
+        </Stack.Protected>
       </Stack.Protected>
 
       <Stack.Protected guard={!logado}>

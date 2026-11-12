@@ -7,19 +7,21 @@ import {
 import ListaPosts from '@/app/index';
 import api from '@/services/api';
 import type { IPost } from '@/interfaces/IPost';
+import type { Perfil } from '@/interfaces/IUsuarioLogado';
 
 jest.mock('@/services/api', () => ({
   __esModule: true,
   default: { get: jest.fn() },
 }));
 
+let mockPerfil: Perfil = 'Aluno';
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     usuarioLogado: {
       id: 'u1',
-      nome: 'Aluno',
+      nome: 'Fulano',
       email: 'a@a.com',
-      perfil: 'Aluno',
+      perfil: mockPerfil,
     },
     logout: jest.fn(),
   }),
@@ -29,6 +31,7 @@ jest.mock('@/contexts/AuthContext', () => ({
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
+  useFocusEffect: jest.fn(),
   useRouter: () => ({ push: mockPush }),
 }));
 
@@ -57,6 +60,29 @@ describe('Lista de posts', () => {
   beforeEach(() => {
     mockGet.mockReset();
     mockPush.mockReset();
+    mockPerfil = 'Aluno';
+  });
+
+  it('não deve mostrar "Novo post" para o Aluno', async () => {
+    mockGet.mockResolvedValue({ data: posts });
+    await render(<ListaPosts />);
+    await screen.findByText('React Native');
+
+    expect(
+      screen.queryByRole('button', { name: '+ Novo post' })
+    ).not.toBeOnTheScreen();
+  });
+
+  it('deve abrir o formulário de novo post para o Professor', async () => {
+    mockPerfil = 'Professor';
+    mockGet.mockResolvedValue({ data: posts });
+    await render(<ListaPosts />);
+
+    await fireEvent.press(
+      await screen.findByRole('button', { name: '+ Novo post' })
+    );
+
+    expect(mockPush).toHaveBeenCalledWith('/posts/novo');
   });
 
   it('deve listar título, descrição, autor e data', async () => {

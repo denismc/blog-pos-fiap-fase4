@@ -32,7 +32,7 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 - [x] **5** · `feat/mobile-auth` — cliente da API, contexto de autenticação, login e rotas protegidas por perfil
 - [x] **6** · `feat/mobile-lista-posts` — página principal com título, autor, descrição curta e busca
 - [x] **7** · `feat/mobile-detalhe-post` — leitura do post completo e comentários
-- [ ] **8** · `feat/mobile-form-post` — criação e edição de posts
+- [x] **8** · `feat/mobile-form-post` — criação e edição de posts
 - [ ] **9** · `feat/mobile-admin-posts` — página administrativa com editar/excluir
 - [ ] **10** · `feat/mobile-gestao-usuarios` — listagem paginada, criação e edição de professores e alunos
 
