@@ -29,7 +29,7 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 
 ### Mobile
 - [x] **4** · `feat/mobile-setup` — projeto Expo, estrutura de pastas, tema, lint/prettier
-- [ ] **5** · `feat/mobile-auth` — cliente da API, contexto de autenticação, login e rotas protegidas por perfil
+- [x] **5** · `feat/mobile-auth` — cliente da API, contexto de autenticação, login e rotas protegidas por perfil
 - [ ] **6** · `feat/mobile-lista-posts` — página principal com título, autor, descrição curta e busca
 - [ ] **7** · `feat/mobile-detalhe-post` — leitura do post completo e comentários
 - [ ] **8** · `feat/mobile-form-post` — criação e edição de posts

@@ -1,14 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { API_URL } from '@/config/env';
+import { useAuth } from '@/contexts/AuthContext';
+import { Botao } from '@/components/Botao';
 import { cores, espacamento, fonte } from '@/theme';
 
-/** Tela provisória: substituída pelo login/lista de posts nas próximas entregas. */
+/** Tela inicial provisória da área logada: vira a lista de posts na entrega 6. */
 export default function Inicio() {
+  const { usuarioLogado, logout } = useAuth();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Blog FIAP</Text>
-      <Text style={styles.texto}>App mobile em construção.</Text>
-      <Text style={styles.api}>API: {API_URL}</Text>
+      <Text style={styles.titulo}>Olá, {usuarioLogado?.nome}!</Text>
+      <Text style={styles.texto}>Perfil: {usuarioLogado?.perfil}</Text>
+      <Botao titulo="Sair" variante="secundaria" onPress={logout} />
     </View>
   );
 }
@@ -19,19 +22,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: espacamento.xl,
-    gap: espacamento.sm,
+    gap: espacamento.md,
   },
   titulo: {
-    fontSize: fonte.grande,
+    fontSize: fonte.titulo,
     fontWeight: 'bold',
     color: cores.secundaria,
   },
-  texto: {
-    fontSize: fonte.media,
-    color: cores.texto,
-  },
-  api: {
-    fontSize: fonte.pequena,
-    color: cores.textoSecundario,
-  },
+  texto: { fontSize: fonte.media, color: cores.texto },
 });
