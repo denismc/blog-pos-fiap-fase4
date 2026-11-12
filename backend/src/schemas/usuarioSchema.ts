@@ -24,3 +24,18 @@ export const loginSchema = z.object({
   email: z.email('Email inválido'),
   senha: z.string({ error: 'Senha é obrigatória' }).min(1, 'Senha é obrigatória'),
 });
+
+export const listarUsuariosQuerySchema = z.object({
+  perfil: z
+    .enum(['Administrador', 'Professor', 'Aluno'] as const, {
+      error: 'Perfil inválido',
+    })
+    .optional(),
+  page: z.coerce.number().int().min(1, 'page deve ser maior ou igual a 1').default(1),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1, 'limit deve ser maior ou igual a 1')
+    .max(50, 'limit deve ser no máximo 50')
+    .default(10),
+});

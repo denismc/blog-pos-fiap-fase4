@@ -3,6 +3,9 @@ import argon2 from 'argon2';
 import { IUsuarioRepository } from '../repositories/IUsuarioRepository.js';
 import { env } from '../config/env.js';
 import { IAtualizarUsuario } from '../interfaces/IAtualizarUsuario.js';
+import { IUsuario } from '../interfaces/IUsuario.js';
+import { IResultadoPaginado } from '../interfaces/IPaginacao.js';
+import { listarUsuariosQuerySchema } from '../schemas/usuarioSchema.js';
 
 const ERRO_GERENCIAR_ADMIN = 'Professores não podem gerenciar Administradores';
 
@@ -45,10 +48,30 @@ export class UsuarioController {
     }
   }
 
-  async listarUsuarios(_req: Request, res: Response): Promise<void> {
+  async listarUsuarios(req: Request, res: Response): Promise<void> {
     try {
-      const usuarios = await this.repository.findAll();
-      res.status(200).json(usuarios);
+      const query = listarUsuariosQuerySchema.safeParse(req.query);
+      if (!query.success) {
+        res.status(400).json({
+          erro: 'Parâmetros inválidos',
+          detalhes: query.error.issues.map((issue) => ({
+            campo: issue.path.join('.'),
+            mensagem: issue.message,
+          })),
+        });
+        return;
+      }
+
+      const { page, limit } = query.data;
+      const { itens, total } = await this.repository.findPaginado(query.data);
+
+      const resultado: IResultadoPaginado<IUsuario> = {
+        itens,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      };
+      res.status(200).json(resultado);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
       res.status(500).json({ erro: message });

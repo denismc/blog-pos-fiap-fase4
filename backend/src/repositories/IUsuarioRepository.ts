@@ -1,9 +1,9 @@
 import { IUsuario } from '../interfaces/IUsuario.js';
 import { ICriarUsuario } from '../interfaces/ICriarUsuario.js';
-import { IAtualizarUsuario } from '../interfaces/IAtualizarUsuario.js';
+import { IFiltroUsuarios } from '../interfaces/IPaginacao.js';
 
 export interface IUsuarioRepository {
-  findAll(): Promise<IUsuario[]>;
+  findPaginado(filtro: IFiltroUsuarios): Promise<{ itens: IUsuario[]; total: number }>;
   findById(id: string): Promise<IUsuario | null>;
   findByEmail(email: string): Promise<(IUsuario & { senha: string }) | null>;
   create(dados: ICriarUsuario): Promise<IUsuario>;
