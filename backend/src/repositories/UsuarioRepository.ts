@@ -2,11 +2,23 @@ import { IUsuarioRepository } from './IUsuarioRepository.js';
 import { IUsuario } from '../interfaces/IUsuario.js';
 import { ICriarUsuario } from '../interfaces/ICriarUsuario.js';
 import { IAtualizarUsuario } from '../interfaces/IAtualizarUsuario.js';
+import { IFiltroUsuarios } from '../interfaces/IPaginacao.js';
 import Usuario from '../models/usuarioModel.js';
 
 export class UsuarioRepository implements IUsuarioRepository {
-  async findAll(): Promise<IUsuario[]> {
-    return await Usuario.find().lean();
+  async findPaginado({ perfil, page, limit }: IFiltroUsuarios): Promise<{ itens: IUsuario[]; total: number }> {
+    const filtro = perfil ? { perfil } : {};
+
+    const [itens, total] = await Promise.all([
+      Usuario.find(filtro)
+        .sort({ nome: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Usuario.countDocuments(filtro),
+    ]);
+
+    return { itens, total };
   }
 
   async findById(id: string): Promise<IUsuario | null> {

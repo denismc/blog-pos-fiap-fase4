@@ -69,20 +69,58 @@ router.post('/', autorizar('Administrador', 'Professor'), validarSchema(criarUsu
  * @swagger
  * /usuarios:
  *   get:
- *     summary: Listar todos os usuários
- *     description: Restrito a Administrador e Professor.
+ *     summary: Listar usuários (paginado, com filtro por perfil)
+ *     description: Restrito a Administrador e Professor. Resultados ordenados por nome.
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: perfil
+ *         schema:
+ *           type: string
+ *           enum: [Administrador, Professor, Aluno]
+ *         description: Filtra pelo perfil (omitido = todos)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 10
  *     responses:
  *       200:
- *         description: Lista de usuários
+ *         description: Página de usuários
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Usuario'
+ *               type: object
+ *               properties:
+ *                 itens:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Usuario'
+ *                 total:
+ *                   type: integer
+ *                   example: 23
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 3
+ *       400:
+ *         description: Parâmetros de paginação ou perfil inválidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErroValidacao'
  *       401:
  *         description: Token não fornecido ou inválido
  *       403:

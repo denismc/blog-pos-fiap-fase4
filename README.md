@@ -66,7 +66,7 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 - **Componentes por tela**:
   - `screens/TelaPosts.tsx` — lista/busca/cria/edita/exclui posts (Administrador e Professor)
   - `screens/TelaPostsAluno.tsx` — lista somente leitura em formato de cards (Aluno)
-  - `screens/TelaUsuarios.tsx` — gestão de usuários (Administrador)
+  - `screens/TelaUsuarios.tsx` — gestão de usuários (Administrador), com filtro por perfil e paginação (`components/Paginacao.tsx`)
   - `components/PostDetalhe.tsx` — conteúdo completo do post + comentários (`components/Comentarios.tsx`)
 - **Estilização**: CSS puro (`src/App.css`), sem biblioteca de estilização — responsivo via media queries (breakpoints em 768px e 480px). Em telas pequenas, a navegação do header vira um menu suspenso (ícone ☰) e as tabelas (Posts/Usuários) viram cartões empilhados em vez de rolagem horizontal.
 - **Ícones**: SVGs inline em `components/Icones.tsx`, sem dependência externa de ícones.
@@ -74,7 +74,7 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 ### Guia de uso
 
 1. **Login** — tela inicial, exige e-mail/senha de um usuário cadastrado (veja a seção "👤 Usuários padrão" mais abaixo).
-2. **Administrador**: acessa as abas "Posts" e "Usuários" no header. Pode criar/editar/excluir qualquer post e qualquer usuário.
+2. **Administrador**: acessa as abas "Posts" e "Usuários" no header. Pode criar/editar/excluir qualquer post e qualquer usuário. A aba "Usuários" lista 10 por página, ordenados por nome, com filtro por perfil.
 3. **Professor**: acessa só a aba "Posts". Pode criar posts e editar/excluir apenas os que ele mesmo criou.
 4. **Aluno**: não tem abas de navegação — vê direto a lista de posts em cards, com busca, acesso somente leitura, e pode comentar nos posts.
 5. **Comentários**: qualquer perfil autenticado pode comentar ao abrir um post; só o autor do comentário ou um Administrador pode excluí-lo.
@@ -91,14 +91,14 @@ cd backend
 npm test
 ```
 
-**Cobertura atual:** ~46% statements / ~49% lines (bem acima do mínimo de 20% exigido), com foco nos controllers e no middleware de autorização — em especial `postController` e `comentarioController`, que cobrem as regras de propriedade (autor vs. Administrador) e a checagem de existência do post ao comentar, e `usuarioController`, que cobre o que o Professor pode ou não fazer com outros usuários.
+**Cobertura atual:** ~48% statements / ~51% lines (bem acima do mínimo de 20% exigido), com foco nos controllers e no middleware de autorização — em especial `postController` e `comentarioController`, que cobrem as regras de propriedade (autor vs. Administrador) e a checagem de existência do post ao comentar, e `usuarioController`, que cobre o que o Professor pode ou não fazer com outros usuários.
 
 | Controller / middleware | Testes |
 |------------|--------|
 | `autorizar` (middleware) | 4 |
 | `criarUsuario` | 4 |
 | `atualizarUsuario` | 7 |
-| `listarUsuarios` | 2 |
+| `listarUsuarios` | 8 |
 | `buscarUsuario` | 2 |
 | `deletarUsuario` | 5 |
 | `criarPost` | 2 |
@@ -110,7 +110,7 @@ npm test
 | `criarComentario` | 3 |
 | `listarComentarios` | 3 |
 | `deletarComentario` | 5 |
-| **Total** | **52** |
+| **Total** | **58** |
 
 ## 📋 Pré-requisitos
 
@@ -211,7 +211,7 @@ Documentação interativa completa (Swagger) em `http://localhost:3000/api/docs`
 
 | Método | Rota | Acesso |
 |--------|------|--------|
-| GET | `/api/usuarios` | Administrador, Professor |
+| GET | `/api/usuarios?perfil=&page=&limit=` | Administrador, Professor |
 | GET | `/api/usuarios/:id` | Administrador, Professor |
 | POST | `/api/usuarios` | Administrador (qualquer perfil) ou Professor (somente Professor/Aluno) |
 | PUT | `/api/usuarios/:id` | Administrador (qualquer usuário) ou Professor (somente Professor/Aluno) |
@@ -220,6 +220,8 @@ Documentação interativa completa (Swagger) em `http://localhost:3000/api/docs`
 - Um Professor nunca cria, edita, exclui ou promove um Administrador — a API responde `403` com `"Professores não podem gerenciar Administradores"`.
 - Ninguém pode alterar o próprio perfil nem excluir a própria conta (vale para qualquer perfil).
 - Alunos não acessam a listagem nem os dados de outros usuários (e-mails ficam protegidos).
+- A listagem é paginada e ordenada por nome. Todos os parâmetros são opcionais: `perfil` (`Administrador`, `Professor` ou `Aluno`), `page` (padrão `1`) e `limit` (padrão `10`, máximo `50`). Valores inválidos retornam `400`.
+- Formato da resposta: `{ "itens": [...], "total": 23, "page": 1, "totalPages": 3 }`.
 
 **Posts**
 

@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
 const mockRepository: jest.Mocked<IUsuarioRepository> = {
-  findAll: jest.fn(),
+  findPaginado: jest.fn(),
   findById: jest.fn(),
   findByEmail: jest.fn(),
   create: jest.fn(),
@@ -255,26 +255,65 @@ describe('criarUsuario', () => {
   });
 
   describe('listarUsuarios', () => {
-    it('deve retornar lista de usuários com status 200', async () => {
+    it('deve usar page 1 e limit 10 por padrão e retornar o formato paginado', async () => {
       const usuarios = [
         { _id: '1', nome: 'João', email: 'joao@email.com', perfil: 'Aluno' as const, createdAt: '2024-01-01', updatedAt: '2024-01-01' },
       ];
-      mockRepository.findAll.mockResolvedValue(usuarios);
+      mockRepository.findPaginado.mockResolvedValue({ itens: usuarios, total: 1 });
 
-      const req = {} as Request;
+      const req = { query: {} } as unknown as Request;
       const res = mockResponse();
 
       await controller.listarUsuarios(req, res);
 
-      expect(mockRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(mockRepository.findPaginado).toHaveBeenCalledWith({ page: 1, limit: 10 });
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(usuarios);
+      expect(res.json).toHaveBeenCalledWith({ itens: usuarios, total: 1, page: 1, totalPages: 1 });
+    });
+
+    it('deve repassar perfil, page e limit da query e calcular totalPages', async () => {
+      mockRepository.findPaginado.mockResolvedValue({ itens: [professor], total: 23 });
+
+      const req = { query: { perfil: 'Professor', page: '2', limit: '5' } } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.listarUsuarios(req, res);
+
+      expect(mockRepository.findPaginado).toHaveBeenCalledWith({ perfil: 'Professor', page: 2, limit: 5 });
+      expect(res.json).toHaveBeenCalledWith({ itens: [professor], total: 23, page: 2, totalPages: 5 });
+    });
+
+    it('deve retornar totalPages 0 quando não houver usuários', async () => {
+      mockRepository.findPaginado.mockResolvedValue({ itens: [], total: 0 });
+
+      const req = { query: { perfil: 'Aluno' } } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.listarUsuarios(req, res);
+
+      expect(res.json).toHaveBeenCalledWith({ itens: [], total: 0, page: 1, totalPages: 0 });
+    });
+
+    it.each([
+      { perfil: 'Diretor' },
+      { page: '0' },
+      { page: 'abc' },
+      { limit: '51' },
+    ])('deve retornar 400 para query inválida %o', async (query) => {
+      const req = { query } as unknown as Request;
+      const res = mockResponse();
+
+      await controller.listarUsuarios(req, res);
+
+      expect(mockRepository.findPaginado).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ erro: 'Parâmetros inválidos' }));
     });
 
     it('deve retornar status 500 quando ocorrer erro', async () => {
-      mockRepository.findAll.mockRejectedValue(new Error('Erro no banco'));
+      mockRepository.findPaginado.mockRejectedValue(new Error('Erro no banco'));
 
-      const req = {} as Request;
+      const req = { query: {} } as unknown as Request;
       const res = mockResponse();
 
       await controller.listarUsuarios(req, res);
