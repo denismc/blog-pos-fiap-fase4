@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { IPost } from '@/interfaces/IPost';
-import { formatarData, nomeDoAutor, resumir } from '@/utils/posts';
+import { formatarData } from '@/utils/datas';
+import { nomeDoAutor, resumir } from '@/utils/posts';
 import { cores, espacamento, fonte, raio } from '@/theme';
 
 interface CardPostProps {

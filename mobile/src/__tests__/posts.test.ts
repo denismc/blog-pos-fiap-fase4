@@ -2,7 +2,6 @@ import type { IPost } from '@/interfaces/IPost';
 import {
   AUTOR_DESCONHECIDO,
   filtrarPosts,
-  formatarData,
   nomeDoAutor,
   resumir,
 } from '@/utils/posts';
@@ -73,15 +72,5 @@ describe('resumir', () => {
 
   it('deve juntar quebras de linha e espaços repetidos', () => {
     expect(resumir('Linha 1\n\nLinha   2', 140)).toBe('Linha 1 Linha 2');
-  });
-});
-
-describe('formatarData', () => {
-  it('deve formatar como dd/mm/aaaa', () => {
-    expect(formatarData('2026-03-05T12:00:00.000Z')).toBe('05/03/2026');
-  });
-
-  it('deve devolver vazio para data inválida', () => {
-    expect(formatarData('não é data')).toBe('');
   });
 });

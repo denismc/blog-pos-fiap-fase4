@@ -26,7 +26,11 @@ jest.mock('@/contexts/AuthContext', () => ({
 }));
 
 // O Stack.Screen só funciona dentro de um navegador; aqui ele não importa.
-jest.mock('expo-router', () => ({ Stack: { Screen: () => null } }));
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({
+  Stack: { Screen: () => null },
+  useRouter: () => ({ push: mockPush }),
+}));
 
 const mockGet = api.get as jest.Mock;
 
@@ -50,7 +54,10 @@ const posts: IPost[] = [
 ];
 
 describe('Lista de posts', () => {
-  beforeEach(() => mockGet.mockReset());
+  beforeEach(() => {
+    mockGet.mockReset();
+    mockPush.mockReset();
+  });
 
   it('deve listar título, descrição, autor e data', async () => {
     mockGet.mockResolvedValue({ data: posts });
@@ -64,6 +71,19 @@ describe('Lista de posts', () => {
     expect(screen.getByText('05/03/2026')).toBeOnTheScreen();
     expect(screen.getByText('Autor desconhecido')).toBeOnTheScreen();
     expect(mockGet).toHaveBeenCalledWith('/posts');
+  });
+
+  it('deve abrir o detalhe ao tocar no post', async () => {
+    mockGet.mockResolvedValue({ data: posts });
+    await render(<ListaPosts />);
+
+    await fireEvent.press(
+      await screen.findByRole('button', {
+        name: 'React Native, por Autor desconhecido',
+      })
+    );
+
+    expect(mockPush).toHaveBeenCalledWith('/posts/2');
   });
 
   it('deve filtrar pela busca e limpar o filtro', async () => {

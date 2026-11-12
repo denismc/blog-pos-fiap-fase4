@@ -1,4 +1,16 @@
-import { podeGerenciarPosts, podeGerenciarUsuarios } from '@/utils/permissoes';
+import type { IUsuarioLogado, Perfil } from '@/interfaces/IUsuarioLogado';
+import {
+  eAutorOuAdmin,
+  podeGerenciarPosts,
+  podeGerenciarUsuarios,
+} from '@/utils/permissoes';
+
+const usuario = (id: string, perfil: Perfil): IUsuarioLogado => ({
+  id,
+  nome: 'Fulano',
+  email: 'f@f.com',
+  perfil,
+});
 
 describe('permissoes', () => {
   it.each([
@@ -18,5 +30,28 @@ describe('permissoes', () => {
     [null, false],
   ] as const)('podeGerenciarUsuarios(%s) deve ser %s', (perfil, esperado) => {
     expect(podeGerenciarUsuarios(perfil)).toBe(esperado);
+  });
+
+  describe('eAutorOuAdmin', () => {
+    const item = { autor: { _id: 'u1' } };
+
+    it('deve permitir o autor do item', () => {
+      expect(eAutorOuAdmin(usuario('u1', 'Aluno'), item)).toBe(true);
+    });
+
+    it('deve permitir o Administrador mesmo sem ser o autor', () => {
+      expect(eAutorOuAdmin(usuario('u9', 'Administrador'), item)).toBe(true);
+    });
+
+    it('não deve permitir outro Professor', () => {
+      expect(eAutorOuAdmin(usuario('u2', 'Professor'), item)).toBe(false);
+    });
+
+    it('não deve permitir sem usuário ou com autor excluído', () => {
+      expect(eAutorOuAdmin(null, item)).toBe(false);
+      expect(eAutorOuAdmin(usuario('u1', 'Aluno'), { autor: null })).toBe(
+        false
+      );
+    });
   });
 });
