@@ -41,16 +41,3 @@ export function resumir(texto: string, tamanho = 140): string {
     ultimoEspaco > 0 ? corte.slice(0, ultimoEspaco) : corte;
   return `${semPalavraQuebrada.trimEnd()}…`;
 }
-
-/**
- * Data no formato dd/mm/aaaa. Montada à mão para não depender do suporte a
- * Intl/locale pt-BR do motor JavaScript do aparelho.
- */
-export function formatarData(iso: string): string {
-  const data = new Date(iso);
-  if (Number.isNaN(data.getTime())) return '';
-
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0');
-  return `${dia}/${mes}/${data.getFullYear()}`;
-}

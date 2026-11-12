@@ -41,6 +41,7 @@ function Navegacao() {
     >
       <Stack.Protected guard={logado}>
         <Stack.Screen name="index" options={{ title: 'Blog FIAP' }} />
+        <Stack.Screen name="posts/[id]" options={{ title: 'Post' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={!logado}>

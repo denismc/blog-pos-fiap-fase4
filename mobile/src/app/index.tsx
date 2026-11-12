@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
 import { filtrarPosts } from '@/utils/posts';
@@ -19,6 +19,7 @@ import { cores, espacamento, fonte } from '@/theme';
 
 /** Página principal: lista de posts com busca por palavra-chave. */
 export default function ListaPosts() {
+  const router = useRouter();
   const { usuarioLogado, logout } = useAuth();
   const { posts, carregando, atualizando, erro, recarregar } = usePosts();
   const [termoBusca, setTermoBusca] = useState('');
@@ -91,7 +92,12 @@ export default function ListaPosts() {
       <FlatList
         data={postsFiltrados}
         keyExtractor={(post) => post._id}
-        renderItem={({ item }) => <CardPost post={item} />}
+        renderItem={({ item }) => (
+          <CardPost
+            post={item}
+            onPress={(post) => router.push(`/posts/${post._id}`)}
+          />
+        )}
         ListHeaderComponent={cabecalho}
         ListEmptyComponent={renderizarVazio}
         ItemSeparatorComponent={Separador}
