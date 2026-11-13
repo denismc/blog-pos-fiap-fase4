@@ -22,3 +22,13 @@ export const eAutorOuAdmin = (
 ): boolean =>
   !!usuario &&
   (usuario.perfil === 'Administrador' || item.autor?._id === usuario.id);
+
+/**
+ * Editar/excluir um post: precisa gerenciar posts (Professor ou Administrador)
+ * e ser o autor, a não ser que seja Administrador.
+ */
+export const podeAlterarPost = (
+  usuario: IUsuarioLogado | null | undefined,
+  post: ItemComAutor
+): boolean =>
+  podeGerenciarPosts(usuario?.perfil) && eAutorOuAdmin(usuario, post);

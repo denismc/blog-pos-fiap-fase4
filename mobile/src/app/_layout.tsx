@@ -51,6 +51,10 @@ function Navegacao() {
             name="posts/editar/[id]"
             options={{ title: 'Editar post' }}
           />
+          <Stack.Screen
+            name="admin/posts"
+            options={{ title: 'Gerenciar posts' }}
+          />
         </Stack.Protected>
       </Stack.Protected>
 

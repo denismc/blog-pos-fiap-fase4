@@ -1,6 +1,7 @@
 import type { IUsuarioLogado, Perfil } from '@/interfaces/IUsuarioLogado';
 import {
   eAutorOuAdmin,
+  podeAlterarPost,
   podeGerenciarPosts,
   podeGerenciarUsuarios,
 } from '@/utils/permissoes';
@@ -30,6 +31,23 @@ describe('permissoes', () => {
     [null, false],
   ] as const)('podeGerenciarUsuarios(%s) deve ser %s', (perfil, esperado) => {
     expect(podeGerenciarUsuarios(perfil)).toBe(esperado);
+  });
+
+  describe('podeAlterarPost', () => {
+    const post = { autor: { _id: 'u1' } };
+
+    it('deve permitir o Professor autor e o Administrador', () => {
+      expect(podeAlterarPost(usuario('u1', 'Professor'), post)).toBe(true);
+      expect(podeAlterarPost(usuario('u9', 'Administrador'), post)).toBe(true);
+    });
+
+    it('não deve permitir Aluno, mesmo que conste como autor', () => {
+      expect(podeAlterarPost(usuario('u1', 'Aluno'), post)).toBe(false);
+    });
+
+    it('não deve permitir Professor que não é o autor', () => {
+      expect(podeAlterarPost(usuario('u2', 'Professor'), post)).toBe(false);
+    });
   });
 
   describe('eAutorOuAdmin', () => {

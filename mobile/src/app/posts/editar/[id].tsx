@@ -4,7 +4,7 @@ import api from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePost } from '@/hooks/usePost';
 import type { PostForm } from '@/schemas/postSchema';
-import { eAutorOuAdmin } from '@/utils/permissoes';
+import { podeAlterarPost } from '@/utils/permissoes';
 import { Botao } from '@/components/Botao';
 import { FormPost } from '@/components/FormPost';
 import { cores, espacamento, fonte } from '@/theme';
@@ -42,7 +42,7 @@ export default function EditarPost() {
     );
   }
 
-  if (!eAutorOuAdmin(usuarioLogado, post)) {
+  if (!podeAlterarPost(usuarioLogado, post)) {
     return (
       <View style={styles.centro}>
         <Text style={styles.erro} accessibilityRole="alert">
