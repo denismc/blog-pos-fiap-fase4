@@ -38,7 +38,7 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 
 ### Qualidade e documentação
 - [x] **11** · `ci/mobile` — workflow de CI do app (lint, formatação, checagem de tipos, testes com cobertura mínima e bundle Android)
-- [ ] **12** · `docs/readme-mobile` — setup, arquitetura e guia de uso do mobile no README
+- [x] **12** · `docs/readme-mobile` — setup, arquitetura e guia de uso do mobile no README
 - [ ] **13** · `docs/relato-desafios` — documento de arquitetura e relato de experiências e desafios
 
 ### Fora do repositório

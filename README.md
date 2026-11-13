@@ -1,8 +1,8 @@
 # Blog Pós FIAP
 
-API e front-end de um blog acadêmico com posts, autores e controle de acesso por perfil (Administrador, Professor, Aluno), com autenticação e cadastro de usuários com foco em segurança, boas práticas e arquitetura escalável.
+API, front-end web e aplicativo mobile de um blog acadêmico com posts, autores e controle de acesso por perfil (Administrador, Professor, Aluno), com autenticação e cadastro de usuários com foco em segurança, boas práticas e arquitetura escalável.
 
-> 📱 **Fase 4 em andamento:** desenvolvimento do aplicativo mobile em React Native. O planejamento e o progresso das entregas estão em [`docs/plano-fase4.md`](docs/plano-fase4.md).
+> 📱 **Fase 4:** aplicativo mobile em React Native (Expo) consumindo a mesma API. Veja a seção "📱 Mobile". O planejamento e a evolução por entrega (uma branch e um PR para cada) estão em [`docs/plano-fase4.md`](docs/plano-fase4.md).
 
 ## 🚀 Tecnologias
 
@@ -23,7 +23,11 @@ API e front-end de um blog acadêmico com posts, autores e controle de acesso po
 
 **Mobile**
 - React Native + TypeScript
-- Expo (SDK 58) + Expo Router
+- Expo (SDK 58) + Expo Router (rotas por arquivo e rotas protegidas)
+- expo-secure-store (sessão no armazenamento seguro do aparelho)
+- Axios
+- React Hook Form + Zod
+- Jest + jest-expo + React Native Testing Library
 - ESLint (`eslint-config-expo`) + Prettier
 
 ## 🔐 Segurança
@@ -33,6 +37,12 @@ API e front-end de um blog acadêmico com posts, autores e controle de acesso po
 - Autorização por perfil (Administrador, Professor, Aluno)
 - Variáveis sensíveis isoladas em `.env`
 - Validação de dados no backend e frontend
+
+## 📌 Decisões de projeto
+
+- **Os posts só aparecem depois do login, inclusive para o Aluno.** Todas as rotas de posts e comentários da API exigem um token JWT válido (`app.use('/api/posts', autenticar, ...)` em `backend/src/app.ts`). O login é o que identifica **quem** está acessando e com **qual perfil**. Sem ele não há como saber se a pessoa é Aluno (só lê e comenta), Professor (cria e edita os próprios posts) ou Administrador (gerencia tudo). Por isso, tanto no web quanto no app, o Aluno vê a lista completa de posts, com busca e leitura, logo após entrar com o seu usuário. A leitura dos posts não fica bloqueada para ele: ela só é liberada depois de identificado o perfil. Essa interpretação foi apresentada e aceita na avaliação da fase anterior.
+- **Editar e excluir um post é só para o autor ou para o Administrador.** O enunciado distingue o professor (cria e modifica) do aluno (só visualiza), mas não pede que um professor altere posts de outros professores. Na página administrativa do app todos os posts são listados, e as ações de editar e excluir aparecem apenas para quem a API permite. A API valida a mesma regra.
+- **A API é quem garante as permissões.** O web e o app escondem botões e rotas que o perfil logado não pode usar, mas isso é só interface: toda regra é validada de novo no backend (middleware `autorizar` e checagens nos controllers).
 
 ## 🏗️ Arquitetura
 
@@ -81,13 +91,13 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 1. **Login** — tela inicial, exige e-mail/senha de um usuário cadastrado (veja a seção "👤 Usuários padrão" mais abaixo).
 2. **Administrador**: acessa as abas "Posts" e "Usuários" no header. Pode criar/editar/excluir qualquer post e qualquer usuário. A aba "Usuários" lista 10 por página, ordenados por nome, com filtro por perfil.
 3. **Professor**: acessa só a aba "Posts". Pode criar posts e editar/excluir apenas os que ele mesmo criou.
-4. **Aluno**: não tem abas de navegação — vê direto a lista de posts em cards, com busca, acesso somente leitura, e pode comentar nos posts.
+4. **Aluno**: depois do login, não tem abas de navegação — vê direto a lista de posts em cards, com busca, acesso somente leitura, e pode comentar nos posts (veja "📌 Decisões de projeto").
 5. **Comentários**: qualquer perfil autenticado pode comentar ao abrir um post; só o autor do comentário ou um Administrador pode excluí-lo.
 6. **Mobile**: em telas estreitas, o menu de navegação e o usuário logado saem do header e passam a ficar atrás do ícone ☰ no canto superior direito.
 
 ## 📱 Mobile
 
-> Em desenvolvimento. Hoje o app tem login com sessão persistida, rotas protegidas, a lista de posts com busca, a leitura do post com comentários, a criação e edição de posts, a página administrativa de posts e a gestão de professores e alunos. As demais telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
+Aplicativo Android/iOS que consome a mesma API do web. Ele tem login com sessão persistida, lista de posts com busca, leitura do post com comentários, criação e edição de posts, página administrativa de posts e gestão de professores e alunos, sempre respeitando o perfil logado.
 
 ### Setup inicial
 
@@ -111,6 +121,21 @@ O backend precisa estar rodando (veja "🐳 Rodando com Docker"). No celular, `l
 Scripts úteis (dentro de `mobile/`): `npm test`, `npm run test:coverage`, `npm run lint`, `npm run typecheck`, `npm run format` e `npm run format:check`.
 
 Para entrar, use um dos usuários da seção "👤 Usuários padrão".
+
+**Dicas para rodar:**
+- **Celular físico**: o celular e o PC precisam estar na mesma rede Wi-Fi, e o firewall do PC precisa liberar a porta 3000 (API) e a 8081 (Metro). Para descobrir o IP do PC, use `ipconfig` no Windows ou `ip addr` no Linux/macOS.
+- **Mudou o `.env`?** Pare o Metro e rode `npx expo start --clear`, porque as variáveis `EXPO_PUBLIC_*` são embutidas no bundle.
+- **"Não foi possível conectar à API"** na tela de login quer dizer que o app não alcançou a URL configurada. Confira o `EXPO_PUBLIC_API_URL` e se o backend está no ar (`http://<IP-do-PC>:3000/api/docs` deve abrir no navegador do celular).
+
+### Guia de uso
+
+1. **Login**: a primeira tela pede e-mail e senha. A sessão fica salva no aparelho, então ao reabrir o app o usuário continua logado até tocar em **Sair** (no topo da tela inicial) ou o token expirar. Nesse caso o app volta sozinho para o login.
+2. **Aluno**: depois do login, vê a lista de todos os posts (título, descrição curta, autor e data), com busca por título, conteúdo ou professor, sem diferenciar acentos. Pode puxar a lista para baixo para atualizar. Tocar num post abre o texto completo com os comentários, onde ele pode comentar e excluir os próprios comentários. Não vê botões de criação nem de gestão (veja "📌 Decisões de projeto").
+3. **Professor**: tem tudo o que o Aluno tem e, na tela inicial, mais três botões:
+   - **+ Novo post**: cria um post (título de 3 a 150 caracteres e conteúdo com pelo menos 10).
+   - **Gerenciar posts**: página administrativa com todos os posts, busca e o filtro "Todos os posts" / "Meus posts". Editar e Excluir aparecem só nos posts dele. No detalhe de um post próprio, também aparece **Editar post**.
+   - **Usuários**: lista paginada de professores e alunos (abas, 10 por página) com cadastro, edição e exclusão. Ele não cria nem edita Administradores, não altera o próprio perfil e não exclui a própria conta.
+4. **Administrador**: tem tudo o que o Professor tem, mas edita e exclui **qualquer** post e qualquer comentário. Em "Usuários", vê também a aba de Administradores e pode atribuir o perfil Administrador.
 
 ### Arquitetura da aplicação
 
@@ -279,6 +304,8 @@ docker-compose -p meu-teste -f docker-compose.dev.yml up -d --build
 |---------|-----|
 | Frontend | http://localhost:5173 (dev) / http://localhost:80 (prod) |
 | Backend API | http://localhost:3000 |
+| Documentação da API (Swagger) | http://localhost:3000/api/docs |
+| App mobile | Expo Go, lendo o QR code do `npm start` em `mobile/` |
 | MongoDB | localhost:27017 |
 
 ## 👤 Usuários padrão
