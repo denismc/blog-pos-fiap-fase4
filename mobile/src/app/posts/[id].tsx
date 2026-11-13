@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePost } from '@/hooks/usePost';
 import { useRecarregarAoVoltar } from '@/hooks/useRecarregarAoVoltar';
 import { nomeDoAutor } from '@/utils/posts';
-import { eAutorOuAdmin, podeGerenciarPosts } from '@/utils/permissoes';
+import { podeAlterarPost } from '@/utils/permissoes';
 import { formatarData } from '@/utils/datas';
 import { Botao } from '@/components/Botao';
 import { Comentarios } from '@/components/Comentarios';
@@ -56,9 +56,7 @@ export default function DetalhePost() {
   }
 
   const foiAtualizado = post.updatedAt !== post.createdAt;
-  const podeEditar =
-    podeGerenciarPosts(usuarioLogado?.perfil) &&
-    eAutorOuAdmin(usuarioLogado, post);
+  const podeEditar = podeAlterarPost(usuarioLogado, post);
 
   return (
     <KeyboardAvoidingView

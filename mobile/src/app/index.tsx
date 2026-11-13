@@ -39,10 +39,19 @@ export default function ListaPosts() {
         <Text style={styles.perfil}>({usuarioLogado?.perfil})</Text>
       </Text>
       {podeGerenciarPosts(usuarioLogado?.perfil) ? (
-        <Botao
-          titulo="+ Novo post"
-          onPress={() => router.push('/posts/novo')}
-        />
+        <View style={styles.acoes}>
+          <Botao
+            titulo="+ Novo post"
+            style={styles.acao}
+            onPress={() => router.push('/posts/novo')}
+          />
+          <Botao
+            titulo="Gerenciar posts"
+            variante="secundaria"
+            style={styles.acao}
+            onPress={() => router.push('/admin/posts')}
+          />
+        </View>
       ) : null}
       <CampoBusca
         valor={termoBusca}
@@ -132,6 +141,8 @@ function Separador() {
 
 const styles = StyleSheet.create({
   lista: { padding: espacamento.lg, flexGrow: 1 },
+  acoes: { flexDirection: 'row', gap: espacamento.sm },
+  acao: { flex: 1, paddingHorizontal: espacamento.sm },
   cabecalho: { gap: espacamento.md, marginBottom: espacamento.lg },
   saudacao: {
     fontSize: fonte.media,

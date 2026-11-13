@@ -71,9 +71,12 @@ describe('Lista de posts', () => {
     expect(
       screen.queryByRole('button', { name: '+ Novo post' })
     ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole('button', { name: 'Gerenciar posts' })
+    ).not.toBeOnTheScreen();
   });
 
-  it('deve abrir o formulário de novo post para o Professor', async () => {
+  it('deve abrir novo post e a página administrativa para o Professor', async () => {
     mockPerfil = 'Professor';
     mockGet.mockResolvedValue({ data: posts });
     await render(<ListaPosts />);
@@ -83,6 +86,11 @@ describe('Lista de posts', () => {
     );
 
     expect(mockPush).toHaveBeenCalledWith('/posts/novo');
+
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Gerenciar posts' })
+    );
+    expect(mockPush).toHaveBeenCalledWith('/admin/posts');
   });
 
   it('deve listar título, descrição, autor e data', async () => {
