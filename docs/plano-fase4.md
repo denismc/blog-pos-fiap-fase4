@@ -37,7 +37,7 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 - [x] **10** · `feat/mobile-gestao-usuarios` — listagem paginada, criação e edição de professores e alunos
 
 ### Qualidade e documentação
-- [ ] **11** · `ci/mobile` — workflow de CI do app (lint + checagem de tipos)
+- [x] **11** · `ci/mobile` — workflow de CI do app (lint, formatação, checagem de tipos, testes com cobertura mínima e bundle Android)
 - [ ] **12** · `docs/readme-mobile` — setup, arquitetura e guia de uso do mobile no README
 - [ ] **13** · `docs/relato-desafios` — documento de arquitetura e relato de experiências e desafios
 
