@@ -1,7 +1,10 @@
 import type { IUsuarioLogado, Perfil } from '@/interfaces/IUsuarioLogado';
 import {
   eAutorOuAdmin,
+  perfisAtribuiveis,
   podeAlterarPost,
+  podeAlterarUsuario,
+  podeExcluirUsuario,
   podeGerenciarPosts,
   podeGerenciarUsuarios,
 } from '@/utils/permissoes';
@@ -31,6 +34,43 @@ describe('permissoes', () => {
     [null, false],
   ] as const)('podeGerenciarUsuarios(%s) deve ser %s', (perfil, esperado) => {
     expect(podeGerenciarUsuarios(perfil)).toBe(esperado);
+  });
+
+  describe('gestão de usuários', () => {
+    it('perfisAtribuiveis: Professor não atribui Administrador', () => {
+      expect(perfisAtribuiveis('Administrador')).toEqual([
+        'Administrador',
+        'Professor',
+        'Aluno',
+      ]);
+      expect(perfisAtribuiveis('Professor')).toEqual(['Professor', 'Aluno']);
+      expect(perfisAtribuiveis('Aluno')).toEqual([]);
+    });
+
+    it('podeAlterarUsuario: Professor não altera Administrador', () => {
+      const alvoAdmin = { perfil: 'Administrador' as const };
+      const alvoAluno = { perfil: 'Aluno' as const };
+      expect(podeAlterarUsuario(usuario('p', 'Professor'), alvoAluno)).toBe(
+        true
+      );
+      expect(podeAlterarUsuario(usuario('p', 'Professor'), alvoAdmin)).toBe(
+        false
+      );
+      expect(podeAlterarUsuario(usuario('a', 'Administrador'), alvoAdmin)).toBe(
+        true
+      );
+      expect(podeAlterarUsuario(usuario('x', 'Aluno'), alvoAluno)).toBe(false);
+    });
+
+    it('podeExcluirUsuario: ninguém exclui a própria conta', () => {
+      const admin = usuario('a', 'Administrador');
+      expect(
+        podeExcluirUsuario(admin, { _id: 'a', perfil: 'Administrador' })
+      ).toBe(false);
+      expect(podeExcluirUsuario(admin, { _id: 'b', perfil: 'Professor' })).toBe(
+        true
+      );
+    });
   });
 
   describe('podeAlterarPost', () => {

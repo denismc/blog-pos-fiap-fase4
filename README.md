@@ -87,7 +87,7 @@ Se preferir rodar via Docker em vez de local, veja a seção "🐳 Rodando com D
 
 ## 📱 Mobile
 
-> Em desenvolvimento. Hoje o app tem login com sessão persistida, rotas protegidas, a lista de posts com busca, a leitura do post com comentários, a criação e edição de posts e a página administrativa de posts. As demais telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
+> Em desenvolvimento. Hoje o app tem login com sessão persistida, rotas protegidas, a lista de posts com busca, a leitura do post com comentários, a criação e edição de posts, a página administrativa de posts e a gestão de professores e alunos. As demais telas chegam nas próximas entregas do [plano](docs/plano-fase4.md).
 
 ### Setup inicial
 
@@ -119,15 +119,16 @@ Para entrar, use um dos usuários da seção "👤 Usuários padrão".
 - **Configuração** (`src/config/env.ts`): URL da API lida de `EXPO_PUBLIC_API_URL`.
 - **Imports com alias** `@/` apontando para `src/` (ex.: `import { cores } from '@/theme'`).
 - **Autenticação via Context API** (`src/contexts/AuthContext.tsx`): expõe `usuarioLogado`, `login` e `logout`, como no web. A sessão (token + usuário) fica no **armazenamento seguro do aparelho** com `expo-secure-store` (Keychain/Keystore), em vez do `localStorage`, e é restaurada ao abrir o app.
-- **Rotas protegidas** (`src/app/_layout.tsx`): usam `Stack.Protected` do Expo Router. Sem usuário logado só existe a tela de login. As telas de criar e editar post e a página administrativa ficam num `Stack.Protected` aninhado que só existe para Professor e Administrador: para o Aluno essas rotas não existem, nem abrindo o link direto. Ao logar ou deslogar, o Expo Router redireciona sozinho, sem navegação manual.
+- **Rotas protegidas** (`src/app/_layout.tsx`): usam `Stack.Protected` do Expo Router. Sem usuário logado só existe a tela de login. As telas de criar e editar post, a página administrativa e a gestão de usuários ficam em `Stack.Protected` aninhados que só existem para Professor e Administrador: para o Aluno essas rotas não existem, nem abrindo o link direto. Ao logar ou deslogar, o Expo Router redireciona sozinho, sem navegação manual.
 - **Cliente da API** (`src/services/api.ts`): uma instância do Axios. Um interceptor injeta o token JWT, e outro chama o `logout` quando a API responde 401 (token expirado). No mobile não existe `window.location`, então o redirecionamento fica a cargo das rotas protegidas.
-- **Formulários** com `react-hook-form` + `zod` (`src/schemas/`), no mesmo padrão do web. Os componentes reutilizáveis ficam em `src/components/` (`Botao`, `CampoTexto`, `CampoBusca`, `CardPost`, `Comentarios`, `FormPost`, `ItemPostAdmin`).
+- **Formulários** com `react-hook-form` + `zod` (`src/schemas/`), no mesmo padrão do web. Os componentes reutilizáveis ficam em `src/components/` (`Botao`, `CampoTexto`, `CampoBusca`, `CardPost`, `Comentarios`, `FormPost`, `ItemPostAdmin`, `FormUsuario`, `Paginacao`, `Segmentado`).
 - **Lista de posts** (`src/app/index.tsx`): página principal com título, descrição curta, autor e data de cada post, em uma `FlatList` com "puxar para atualizar". Tocar no card abre o post.
 - **Hooks de dados** (`src/hooks/`): `useRequisicao` concentra o padrão de toda tela que lê da API (carregando, erro, recarregar e proteção contra resposta que chega depois de a tela fechar). `usePosts`, `usePost` e `useComentarios` são construídos sobre ele.
 - **Busca** (`src/utils/posts.ts`): filtra na hora, sem nova chamada à API, por título, conteúdo ou nome do autor, como no web. No mobile ela também ignora acentos ("introducao" acha "Introdução").
 - **Leitura do post** (`src/app/posts/[id].tsx`): rota dinâmica do Expo Router. Busca o post atualizado na API e mostra o texto completo, autor, data de publicação e de atualização.
 - **Criação e edição de posts** (`src/app/posts/novo.tsx` e `src/app/posts/editar/[id].tsx`): as duas telas usam o mesmo `FormPost`, validado com `postSchema` (mesmas regras do backend: título de 3 a 150 caracteres e conteúdo com pelo menos 10). O botão "+ Novo post" aparece na lista para Professor e Administrador, e o "Editar post" aparece no detalhe só para o autor do post ou para o Administrador. A tela de edição confere essa regra de novo, caso seja aberta por link. Depois de publicar, o app abre o post criado. Depois de salvar, volta ao detalhe.
 - **Página administrativa** (`src/app/admin/posts.tsx`): aberta pelo botão "Gerenciar posts" da tela inicial. Lista **todos** os posts, com busca e o filtro "Todos os posts" / "Meus posts". Editar e Excluir aparecem só para o autor do post ou para o Administrador (`podeAlterarPost` em `src/utils/permissoes.ts`), e os demais posts mostram que são somente leitura. A exclusão pede confirmação e recarrega a lista.
+- **Gestão de usuários** (`src/app/admin/usuarios/`): aberta pelo botão "Usuários" da tela inicial. Lista paginada (10 por página, com Anterior/Próxima) usando o `GET /usuarios?perfil=&page=&limit=` da entrega 2, em abas **Professores** e **Alunos**. O Administrador também vê a aba de Administradores. Cadastro e edição usam o mesmo `FormUsuario`, validado com `usuarioSchema` (mesmas regras do backend). As regras da API também valem na tela (`src/utils/permissoes.ts`): o Professor não vê a opção de perfil Administrador nem edita Administradores, ninguém altera o próprio perfil, e ninguém exclui a própria conta. Na edição, a senha em branco mantém a atual. Excluir pede confirmação, e se a página atual ficar vazia o app volta para a anterior.
 - **Recarregar ao voltar** (`src/hooks/useRecarregarAoVoltar.ts`): a lista e o detalhe recarregam quando voltam a ficar visíveis (via `useFocusEffect`), então um post criado ou editado já aparece atualizado.
 - **Comentários** (`src/components/Comentarios.tsx`): lista do mais antigo para o mais novo e formulário validado com zod (mesmo limite de 1000 caracteres do backend). O botão de excluir aparece só para o autor do comentário ou para o Administrador (`eAutorOuAdmin` em `src/utils/permissoes.ts`), e a exclusão pede confirmação com o `Alert` nativo (`src/utils/confirmar.ts`).
 - **Permissões por perfil** (`src/utils/permissoes.ts`): Professor e Administrador gerenciam posts e usuários, e o Aluno só visualiza. A API continua sendo quem garante essas regras; no app elas só decidem o que é exibido.
@@ -171,11 +172,11 @@ cd mobile
 npm test               # ou npm run test:coverage
 ```
 
-**Cobertura atual:** ~98% statements / ~98% lines.
+**Cobertura atual:** ~97% statements / ~97% lines.
 
 | Arquivo testado | Testes |
 |-----------------|--------|
-| `utils/permissoes` | 16 |
+| `utils/permissoes` | 19 |
 | `schemas/loginSchema` | 4 |
 | `utils/erros` | 3 |
 | `services/api` (interceptors) | 4 |
@@ -184,12 +185,15 @@ npm test               # ou npm run test:coverage
 | `utils/posts` (busca e resumo) | 9 |
 | `utils/datas` | 3 |
 | `schemas/postSchema` | 4 |
+| `schemas/usuarioSchema` | 5 |
 | `hooks/useRecarregarAoVoltar` | 1 |
 | `app/index` (lista de posts) | 8 |
 | `app/posts/[id]` (detalhe e comentários) | 14 |
 | `app/posts/novo` e `app/posts/editar/[id]` (formulário) | 7 |
 | `app/admin/posts` (página administrativa) | 9 |
-| **Total** | **90** |
+| `app/admin/usuarios` (lista paginada) | 8 |
+| `app/admin/usuarios/novo` e `[id]` (formulário) | 10 |
+| **Total** | **116** |
 
 ## 📋 Pré-requisitos
 
@@ -358,11 +362,11 @@ Regras de negócio de `Comentários`:
 ├── mobile/
 │   ├── src/
 │   │   ├── __tests__/    # Testes unitários (Jest + Testing Library)
-│   │   ├── app/          # Telas e layouts (rotas do Expo Router: posts/..., admin/posts)
+│   │   ├── app/          # Telas e layouts (rotas do Expo Router: posts/..., admin/posts, admin/usuarios/...)
 │   │   ├── components/   # Componentes reutilizáveis (Botao, CampoTexto, CardPost...)
 │   │   ├── config/       # URL da API (EXPO_PUBLIC_API_URL)
 │   │   ├── contexts/     # Context API (usuário logado)
-│   │   ├── hooks/        # Hooks de dados (useRequisicao, usePosts, useComentarios...)
+│   │   ├── hooks/        # Hooks de dados (useRequisicao, usePosts, useUsuarios...)
 │   │   ├── interfaces/   # Tipos TypeScript (mobile)
 │   │   ├── schemas/      # Schemas Zod
 │   │   ├── services/     # Axios e sessão (expo-secure-store)

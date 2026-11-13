@@ -74,6 +74,9 @@ describe('Lista de posts', () => {
     expect(
       screen.queryByRole('button', { name: 'Gerenciar posts' })
     ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByRole('button', { name: 'Usuários' })
+    ).not.toBeOnTheScreen();
   });
 
   it('deve abrir novo post e a página administrativa para o Professor', async () => {
@@ -91,6 +94,9 @@ describe('Lista de posts', () => {
       screen.getByRole('button', { name: 'Gerenciar posts' })
     );
     expect(mockPush).toHaveBeenCalledWith('/admin/posts');
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Usuários' }));
+    expect(mockPush).toHaveBeenCalledWith('/admin/usuarios');
   });
 
   it('deve listar título, descrição, autor e data', async () => {

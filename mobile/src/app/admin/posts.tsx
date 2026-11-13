@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -22,9 +21,15 @@ import { mensagemDeErro } from '@/utils/erros';
 import { Botao } from '@/components/Botao';
 import { CampoBusca } from '@/components/CampoBusca';
 import { ItemPostAdmin } from '@/components/ItemPostAdmin';
-import { cores, espacamento, fonte, raio } from '@/theme';
+import { Segmentado, type Opcao } from '@/components/Segmentado';
+import { cores, espacamento, fonte } from '@/theme';
 
 type Filtro = 'todos' | 'meus';
+
+const FILTROS: Opcao<Filtro>[] = [
+  { valor: 'todos', rotulo: 'Todos os posts' },
+  { valor: 'meus', rotulo: 'Meus posts' },
+];
 
 /**
  * Página administrativa (Professor e Administrador): todos os posts, com
@@ -73,31 +78,7 @@ export default function AdminPosts() {
         onChange={setTermoBusca}
         placeholder="Buscar por título, conteúdo ou professor..."
       />
-      <View style={styles.filtros} accessibilityRole="tablist">
-        {(
-          [
-            ['todos', 'Todos os posts'],
-            ['meus', 'Meus posts'],
-          ] as const
-        ).map(([valor, rotulo]) => {
-          const ativo = filtro === valor;
-          return (
-            <Pressable
-              key={valor}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: ativo }}
-              onPress={() => setFiltro(valor)}
-              style={[styles.filtro, ativo && styles.filtroAtivo]}
-            >
-              <Text
-                style={[styles.filtroTexto, ativo && styles.filtroTextoAtivo]}
-              >
-                {rotulo}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <Segmentado opcoes={FILTROS} valor={filtro} onChange={setFiltro} />
       {!carregando && !erro ? (
         <Text style={styles.contagem}>
           {postsVisiveis.length === 1
@@ -177,23 +158,6 @@ function Separador() {
 const styles = StyleSheet.create({
   lista: { padding: espacamento.lg, flexGrow: 1 },
   cabecalho: { gap: espacamento.md, marginBottom: espacamento.lg },
-  filtros: {
-    flexDirection: 'row',
-    backgroundColor: cores.branco,
-    borderRadius: raio.sm,
-    borderWidth: 1,
-    borderColor: cores.borda,
-    overflow: 'hidden',
-  },
-  filtro: {
-    flex: 1,
-    minHeight: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filtroAtivo: { backgroundColor: cores.secundaria },
-  filtroTexto: { fontSize: fonte.normal, color: cores.secundaria },
-  filtroTextoAtivo: { color: cores.branco, fontWeight: 'bold' },
   contagem: { fontSize: fonte.pequena, color: cores.textoSecundario },
   separador: { height: espacamento.md },
   aviso: { marginTop: espacamento.xl, gap: espacamento.md },

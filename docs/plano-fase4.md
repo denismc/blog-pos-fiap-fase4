@@ -34,7 +34,7 @@ Cada entrega tem sua própria branch, com Pull Request e merge na `main`.
 - [x] **7** · `feat/mobile-detalhe-post` — leitura do post completo e comentários
 - [x] **8** · `feat/mobile-form-post` — criação e edição de posts
 - [x] **9** · `feat/mobile-admin-posts` — página administrativa com editar/excluir
-- [ ] **10** · `feat/mobile-gestao-usuarios` — listagem paginada, criação e edição de professores e alunos
+- [x] **10** · `feat/mobile-gestao-usuarios` — listagem paginada, criação e edição de professores e alunos
 
 ### Qualidade e documentação
 - [ ] **11** · `ci/mobile` — workflow de CI do app (lint + checagem de tipos)
