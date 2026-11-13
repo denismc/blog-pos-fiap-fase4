@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
 import { useRecarregarAoVoltar } from '@/hooks/useRecarregarAoVoltar';
 import { filtrarPosts } from '@/utils/posts';
-import { podeGerenciarPosts } from '@/utils/permissoes';
+import { podeGerenciarPosts, podeGerenciarUsuarios } from '@/utils/permissoes';
 import { Botao } from '@/components/Botao';
 import { CampoBusca } from '@/components/CampoBusca';
 import { CardPost } from '@/components/CardPost';
@@ -51,6 +51,14 @@ export default function ListaPosts() {
             style={styles.acao}
             onPress={() => router.push('/admin/posts')}
           />
+          {podeGerenciarUsuarios(usuarioLogado?.perfil) ? (
+            <Botao
+              titulo="Usuários"
+              variante="secundaria"
+              style={styles.acao}
+              onPress={() => router.push('/admin/usuarios')}
+            />
+          ) : null}
         </View>
       ) : null}
       <CampoBusca
@@ -141,8 +149,9 @@ function Separador() {
 
 const styles = StyleSheet.create({
   lista: { padding: espacamento.lg, flexGrow: 1 },
-  acoes: { flexDirection: 'row', gap: espacamento.sm },
-  acao: { flex: 1, paddingHorizontal: espacamento.sm },
+  acoes: { flexDirection: 'row', flexWrap: 'wrap', gap: espacamento.sm },
+  // Dois botões por linha; o terceiro (Usuários) ocupa a linha de baixo.
+  acao: { flexGrow: 1, flexBasis: '45%', paddingHorizontal: espacamento.sm },
   cabecalho: { gap: espacamento.md, marginBottom: espacamento.lg },
   saudacao: {
     fontSize: fonte.media,

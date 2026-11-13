@@ -2,7 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { podeGerenciarPosts } from '@/utils/permissoes';
+import { podeGerenciarPosts, podeGerenciarUsuarios } from '@/utils/permissoes';
 import { cores } from '@/theme';
 
 export default function RootLayout() {
@@ -54,6 +54,21 @@ function Navegacao() {
           <Stack.Screen
             name="admin/posts"
             options={{ title: 'Gerenciar posts' }}
+          />
+        </Stack.Protected>
+
+        <Stack.Protected guard={podeGerenciarUsuarios(usuarioLogado?.perfil)}>
+          <Stack.Screen
+            name="admin/usuarios/index"
+            options={{ title: 'Usuários' }}
+          />
+          <Stack.Screen
+            name="admin/usuarios/novo"
+            options={{ title: 'Novo usuário' }}
+          />
+          <Stack.Screen
+            name="admin/usuarios/[id]"
+            options={{ title: 'Editar usuário' }}
           />
         </Stack.Protected>
       </Stack.Protected>

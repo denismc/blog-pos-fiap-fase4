@@ -32,3 +32,28 @@ export const podeAlterarPost = (
   post: ItemComAutor
 ): boolean =>
   podeGerenciarPosts(usuario?.perfil) && eAutorOuAdmin(usuario, post);
+
+/**
+ * Perfis que o usuário logado pode atribuir ao criar/editar alguém: Professor
+ * não cria nem promove Administradores (regra da API).
+ */
+export const perfisAtribuiveis = (perfil?: Perfil | null): Perfil[] => {
+  if (perfil === 'Administrador')
+    return ['Administrador', 'Professor', 'Aluno'];
+  if (perfil === 'Professor') return ['Professor', 'Aluno'];
+  return [];
+};
+
+/** Editar um usuário: Professor nunca mexe em Administradores. */
+export const podeAlterarUsuario = (
+  usuario: IUsuarioLogado | null | undefined,
+  alvo: { perfil: Perfil }
+): boolean =>
+  podeGerenciarUsuarios(usuario?.perfil) &&
+  (usuario?.perfil === 'Administrador' || alvo.perfil !== 'Administrador');
+
+/** Excluir um usuário: mesma regra de editar, e ninguém exclui a própria conta. */
+export const podeExcluirUsuario = (
+  usuario: IUsuarioLogado | null | undefined,
+  alvo: { _id: string; perfil: Perfil }
+): boolean => podeAlterarUsuario(usuario, alvo) && alvo._id !== usuario?.id;
