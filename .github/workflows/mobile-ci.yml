@@ -1,0 +1,56 @@
+name: Mobile CI
+
+# Gate de qualidade do app React Native (Expo): falha o PR se o lint, os tipos,
+# a formatação, os testes ou o bundle quebrarem. Não há publicação nas lojas:
+# o app é executado pelo Expo Go (veja a seção Mobile do README).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-ci.yml'
+
+jobs:
+  qualidade:
+    name: Lint, tipos, testes e bundle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint (ESLint + Prettier)
+        run: npm run lint
+
+      - name: Formatação
+        run: npm run format:check
+
+      - name: Checagem de tipos
+        run: npm run typecheck
+
+      # O jest.config (em package.json) tem coverageThreshold: abaixo do
+      # mínimo, este passo falha.
+      - name: Testes com cobertura
+        run: npm run test:ci
+
+      # Gera o bundle JavaScript do Android como o Expo Go o carregaria:
+      # pega erros de import/resolução que os testes (com mocks) não pegam.
+      - name: Bundle Android
+        env:
+          EXPO_PUBLIC_API_URL: https://example.invalid/api
+        run: npx expo export --platform android --output-dir dist

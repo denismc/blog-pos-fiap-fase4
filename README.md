@@ -108,7 +108,7 @@ O backend precisa estar rodando (veja "🐳 Rodando com Docker"). No celular, `l
 | Celular físico (mesma rede Wi-Fi do PC) | `http://<IP-do-PC>:3000/api` |
 | Backend publicado | `https://<servico>.onrender.com/api` |
 
-Scripts úteis (dentro de `mobile/`): `npm test`, `npm run test:coverage`, `npm run lint`, `npm run typecheck` e `npm run format`.
+Scripts úteis (dentro de `mobile/`): `npm test`, `npm run test:coverage`, `npm run lint`, `npm run typecheck`, `npm run format` e `npm run format:check`.
 
 Para entrar, use um dos usuários da seção "👤 Usuários padrão".
 
@@ -172,6 +172,8 @@ cd mobile
 npm test               # ou npm run test:coverage
 ```
 
+A configuração do Jest (no `package.json`) tem um `coverageThreshold` global (80% de statements, functions e lines, e 70% de branches): se a cobertura cair abaixo disso, `npm run test:coverage` e o CI falham. O `testTimeout` é de 30 s porque, com o cache do Jest vazio (como no CI), o primeiro teste de cada arquivo inclui a transformação do React Native e passa dos 5 s padrão.
+
 **Cobertura atual:** ~97% statements / ~97% lines.
 
 | Arquivo testado | Testes |
@@ -194,6 +196,18 @@ npm test               # ou npm run test:coverage
 | `app/admin/usuarios` (lista paginada) | 8 |
 | `app/admin/usuarios/novo` e `[id]` (formulário) | 10 |
 | **Total** | **116** |
+
+## 🔄 CI/CD
+
+Os workflows do GitHub Actions (`.github/workflows/`) rodam em todo PR e push para a `main`, cada um só quando a pasta dele muda:
+
+| Workflow | O que faz |
+|----------|-----------|
+| `backend-ci-cd.yml` | Testes com cobertura e build. Na `main`, também publica a imagem no Docker Hub e dispara o deploy no Render |
+| `frontend-ci.yml` | Build do front-end web (o Render publica o site sozinho a cada push na `main`) |
+| `mobile-ci.yml` | Lint, formatação (Prettier), checagem de tipos, testes com o mínimo de cobertura e o bundle JavaScript do Android (`expo export`), que pega erros de import que os testes com mocks não pegam |
+
+O app mobile não é publicado nas lojas: ele roda pelo **Expo Go** (veja "📱 Mobile").
 
 ## 📋 Pré-requisitos
 
@@ -338,6 +352,7 @@ Regras de negócio de `Comentários`:
 ## 📁 Estrutura
 
 ```
+├── .github/workflows/    # CI/CD (backend, frontend e mobile)
 ├── backend/
 │   ├── src/
 │   │   ├── config/       # Variáveis de ambiente
