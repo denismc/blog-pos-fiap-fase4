@@ -41,8 +41,11 @@ API, front-end web e aplicativo mobile de um blog acadêmico com posts, autores 
 ## 📌 Decisões de projeto
 
 - **Os posts só aparecem depois do login, inclusive para o Aluno.** Todas as rotas de posts e comentários da API exigem um token JWT válido (`app.use('/api/posts', autenticar, ...)` em `backend/src/app.ts`). O login é o que identifica **quem** está acessando e com **qual perfil**. Sem ele não há como saber se a pessoa é Aluno (só lê e comenta), Professor (cria e edita os próprios posts) ou Administrador (gerencia tudo). Por isso, tanto no web quanto no app, o Aluno vê a lista completa de posts, com busca e leitura, logo após entrar com o seu usuário. A leitura dos posts não fica bloqueada para ele: ela só é liberada depois de identificado o perfil. Essa interpretação foi apresentada e aceita na avaliação da fase anterior.
+- **O autor do post é o usuário logado.** O enunciado cita um campo "autor" no formulário de criação. No web e no app, a API preenche o autor a partir do token de quem publica, e o nome dele aparece na lista, no detalhe e na página administrativa. Um campo livre permitiria publicar em nome de outra pessoa.
 - **Editar e excluir um post é só para o autor ou para o Administrador.** O enunciado distingue o professor (cria e modifica) do aluno (só visualiza), mas não pede que um professor altere posts de outros professores. Na página administrativa do app todos os posts são listados, e as ações de editar e excluir aparecem apenas para quem a API permite. A API valida a mesma regra.
+- **O Professor administra outros Professores e Alunos.** O enunciado pede páginas de criação, edição e listagem de professores (e as mesmas para alunos), e elas foram atendidas para o perfil Professor: ele cria, edita e exclui Professores e Alunos. Ele nunca mexe em Administradores, ninguém altera o próprio perfil nem exclui a própria conta, e o Aluno não acessa a gestão de usuários. Ao contrário dos posts, em que um professor não altera o conteúdo publicado por outro, a gestão de professores é pedida de forma explícita no enunciado.
 - **A API é quem garante as permissões.** O web e o app escondem botões e rotas que o perfil logado não pode usar, mas isso é só interface: toda regra é validada de novo no backend (middleware `autorizar` e checagens nos controllers).
+- **O app mobile não roda em container.** No backend, o Docker garante que a imagem usada no desenvolvimento seja a mesma publicada no Docker Hub e executada no Render. O app não tem uma imagem equivalente: ele roda no celular, pelo Expo Go, e o Metro só entrega o código ao aparelho. Colocar o Metro num container não mudaria o que roda no celular e ainda complicaria a execução: o Expo Go precisaria alcançar o IP do PC através do container, e a atualização automática ao salvar ficaria lenta no Windows. A reprodutibilidade é garantida pelo `package-lock.json` com `npm ci` e pelo workflow `mobile-ci.yml`, que instala e valida o app do zero a cada PR. O app também não é publicado nas lojas: ele é executado apenas no ambiente de desenvolvimento.
 
 ## 🏗️ Arquitetura
 
@@ -101,16 +104,34 @@ Aplicativo Android/iOS que consome a mesma API do web. Ele tem login com sessão
 
 ### Setup inicial
 
-Pré-requisitos: Node.js 22+ e o app **Expo Go** no celular (Android ou iOS), ou um emulador Android.
+Pré-requisitos: Node.js 22+ no PC e o app **Expo Go** no celular (Android ou iOS, versão atual da loja, compatível com o SDK 58), ou um emulador Android.
 
+O app não roda em container: o Metro (servidor de desenvolvimento do Expo) roda direto no PC e o app roda no celular, pelo Expo Go. Só a API e o banco ficam no Docker. Veja a justificativa em "📌 Decisões de projeto".
+
+**1 → Suba o backend** (na raiz do projeto, depois de seguir "⚙️ Configuração")
+```bash
+docker-compose -f docker-compose.dev.yml up -d --build
+```
+
+**2 → Descubra o IP do PC na rede Wi-Fi** (pule se for usar o emulador)
+```bash
+ipconfig        # Windows: "Endereço IPv4" do adaptador Wi-Fi
+ip addr         # Linux/macOS
+```
+
+**3 → Configure e inicie o app**
 ```bash
 cd mobile
 npm install
-cp .env.example .env   # ajuste EXPO_PUBLIC_API_URL (veja abaixo)
-npm start              # abre o Metro; leia o QR code com o Expo Go
+cp .env.example .env   # ajuste EXPO_PUBLIC_API_URL (veja a tabela abaixo)
+npm start              # abre o Metro e mostra um QR code
 ```
 
-O backend precisa estar rodando (veja "🐳 Rodando com Docker"). No celular, `localhost` é o próprio aparelho, então a URL da API vem de `EXPO_PUBLIC_API_URL`:
+**4 → Abra o app**
+- **Celular**: leia o QR code com o Expo Go (Android) ou com a câmera (iOS).
+- **Emulador Android**: com o emulador aberto, pressione `a` no terminal do Metro (ou rode `npm run android`).
+
+No celular, `localhost` é o próprio aparelho, então a URL da API vem de `EXPO_PUBLIC_API_URL`:
 
 | Onde o app roda | `EXPO_PUBLIC_API_URL` |
 |-----------------|-----------------------|
@@ -237,6 +258,7 @@ O app mobile não é publicado nas lojas: ele roda pelo **Expo Go** (veja "📱 
 ## 📋 Pré-requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- Para o app mobile: [Node.js](https://nodejs.org) 22+ e o app **Expo Go** no celular (veja "📱 Mobile")
 
 ## ⚙️ Configuração
 
@@ -416,7 +438,7 @@ Regras de negócio de `Comentários`:
 │   │   └── utils/        # Permissões, mensagens de erro e busca de posts
 │   ├── assets/           # Ícones e splash
 │   └── app.json          # Configuração do Expo
-├── docs/                 # Plano de entregas da fase 4
+├── docs/                 # Plano de entregas e documentação da fase 4 (arquitetura e relato)
 ├── docker-compose.yml
 └── docker-compose.dev.yml
 ```
